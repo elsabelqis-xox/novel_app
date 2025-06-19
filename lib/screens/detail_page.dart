@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../models/bookshelf_model.dart'; // pastikan kamu punya file model ini yaa
 
 class DetailPage extends StatelessWidget {
   final String title;
@@ -35,6 +37,42 @@ class DetailPage extends StatelessWidget {
             Expanded(
               child: SingleChildScrollView(
                 child: Text(description, style: const TextStyle(fontSize: 16)),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // ⭐ ElevatedButton untuk simpan ke rak buku
+            ElevatedButton(
+              onPressed: () {
+                final novel = {
+                  'title': title,
+                  'author': author,
+                  'description': description,
+                  'image': image,
+                };
+
+                Provider.of<BookshelfModel>(
+                  context,
+                  listen: false,
+                ).addBook(novel);
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Berhasil disimpan ke rak buku'),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.deepPurple,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+              ),
+              child: const Text(
+                'Simpan ke Rak Buku',
+                style: TextStyle(fontSize: 16, color: Colors.white),
               ),
             ),
           ],

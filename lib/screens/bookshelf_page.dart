@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../models/bookshelf_model.dart';
 import 'detail_page.dart';
 
 class BookshelfPage extends StatelessWidget {
@@ -6,24 +8,7 @@ class BookshelfPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, String>> bookshelf = [
-      {
-        'title': 'Senja dan Purnama',
-        'author': 'Nadia Nur',
-        'description':
-            'Perjalanan batin seorang perempuan dalam menemukan makna hidup.',
-        'image':
-            'https://images.unsplash.com/photo-1553729459-efe14ef6055d?auto=format&fit=crop&w=500&q=80',
-      },
-      {
-        'title': 'Jejak yang Hilang',
-        'author': 'Andi Pratama',
-        'description':
-            'Misteri hilangnya sahabat masa kecil dan rahasia keluarga.',
-        'image':
-            'https://images.unsplash.com/photo-1508923567004-3a6b8004f3d3?auto=format&fit=crop&w=500&q=80',
-      },
-    ];
+    final bookshelf = Provider.of<BookshelfModel>(context).bookshelf;
 
     return Scaffold(
       appBar: AppBar(
