@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:badges/badges.dart'
-    as badges; // Pastikan package badges sudah ditambahkan di pubspec.yaml
+import 'package:badges/badges.dart' as badges;
 import 'package:novel_app/screens/detail_page.dart';
 import 'bookshelf_page.dart';
 import '../models/bookshelf_model.dart';
@@ -176,9 +175,7 @@ class _HomePageState extends State<HomePage> {
             IconButton(
               icon: const Icon(Icons.settings),
               tooltip: 'Pengaturan',
-              onPressed: () {
-                // Tambahkan navigasi ke pengaturan jika diperlukan
-              },
+              onPressed: () {},
             ),
           ],
         ),

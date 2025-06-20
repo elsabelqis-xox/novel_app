@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/bookshelf_model.dart'; // pastikan file ini ada yaa
+import '../models/bookshelf_model.dart';
 
 class DetailPage extends StatelessWidget {
   final String title;
@@ -90,7 +90,6 @@ class DetailPage extends StatelessWidget {
         ),
       ),
 
-      // ⭐ FAB Bookmark untuk menambahkan ke rak buku
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Provider.of<BookshelfModel>(context, listen: false).addBook({

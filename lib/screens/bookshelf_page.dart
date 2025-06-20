@@ -64,7 +64,6 @@ class BookshelfPage extends StatelessWidget {
                     listen: false,
                   ).removeBook(novel);
 
-                  // Optional: tampilkan snackbar konfirmasi
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Buku dihapus dari rak 📚❌'),
@@ -83,13 +82,11 @@ class BookshelfPage extends StatelessWidget {
                           title: novel['title']!,
                           author: novel['author']!,
                           description: novel['description']!,
-                          imageurl:
-                              novel['image']!, // pastikan parameternya sesuai
+                          imageurl: novel['image']!,
                         ),
                   ),
                 );
 
-                // ✅ SnackBar ditambahkan dengan benar di sini
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(

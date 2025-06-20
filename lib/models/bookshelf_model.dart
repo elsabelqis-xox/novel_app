@@ -9,12 +9,12 @@ class BookshelfModel extends ChangeNotifier {
   void addBook(Map<String, String> novel) {
     if (!_bookshelf.contains(novel)) {
       _bookshelf.add(novel);
-      notifyListeners(); // ✅ memberitahu perubahan state
+      notifyListeners();
     }
   }
 
   void removeBook(Map<String, String> novel) {
     _bookshelf.remove(novel);
-    notifyListeners(); // ✅ ini valid karena kita extend ChangeNotifier
+    notifyListeners();
   }
 }

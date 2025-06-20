@@ -25,25 +25,28 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       title: 'Novel App',
+
       themeMode: themeProvider.themeMode,
+
       theme: ThemeData(
-        // PERBAIKAN DI SINI: tambahkan brightness: Brightness.light
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFFB3E5FC),
-          brightness: Brightness.light, // Pastikan ini juga light
+          brightness: Brightness.light,
         ),
         useMaterial3: true,
-        brightness: Brightness.light, // Ini sudah benar
+        brightness: Brightness.light,
       ),
+
       darkTheme: ThemeData(
-        // PERBAIKAN DI SINI: tambahkan brightness: Brightness.dark
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.deepPurple,
-          brightness: Brightness.dark, // Pastikan ini juga dark
+          brightness: Brightness.dark,
         ),
         useMaterial3: true,
-        brightness: Brightness.dark, // Ini sudah benar
+        brightness: Brightness.dark,
       ),
+
+      // Halaman awal aplikasi
       home: const HomePage(),
     );
   }
