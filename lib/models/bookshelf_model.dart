@@ -7,7 +7,14 @@ class BookshelfModel extends ChangeNotifier {
   List<Map<String, String>> get bookshelf => _bookshelf;
 
   void addBook(Map<String, String> novel) {
-    _bookshelf.add(novel);
-    notifyListeners();
+    if (!_bookshelf.contains(novel)) {
+      _bookshelf.add(novel);
+      notifyListeners(); // ✅ memberitahu perubahan state
+    }
+  }
+
+  void removeBook(Map<String, String> novel) {
+    _bookshelf.remove(novel);
+    notifyListeners(); // ✅ ini valid karena kita extend ChangeNotifier
   }
 }

@@ -11,9 +11,11 @@ class BookshelfPage extends StatelessWidget {
     final bookshelf = Provider.of<BookshelfModel>(context).bookshelf;
 
     return Scaffold(
+      backgroundColor: const Color(0xFFB3E5FC),
       appBar: AppBar(
         title: const Text('📚 Rak Buku'),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: const Color(0xFFB3E5FC),
+        foregroundColor: Colors.black,
         centerTitle: true,
       ),
       body: ListView.builder(
@@ -54,6 +56,24 @@ class BookshelfPage extends StatelessWidget {
                   ),
                 ],
               ),
+              trailing: IconButton(
+                icon: const Icon(Icons.delete_outline),
+                onPressed: () {
+                  Provider.of<BookshelfModel>(
+                    context,
+                    listen: false,
+                  ).removeBook(novel);
+
+                  // Optional: tampilkan snackbar konfirmasi
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Buku dihapus dari rak 📚❌'),
+                      backgroundColor: Colors.deepPurple,
+                    ),
+                  );
+                },
+              ),
+
               onTap: () {
                 Navigator.push(
                   context,
@@ -63,8 +83,25 @@ class BookshelfPage extends StatelessWidget {
                           title: novel['title']!,
                           author: novel['author']!,
                           description: novel['description']!,
-                          image: novel['image']!,
+                          imageurl:
+                              novel['image']!, // pastikan parameternya sesuai
                         ),
+                  ),
+                );
+
+                // ✅ SnackBar ditambahkan dengan benar di sini
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Buku berhasil disimpan ke rak!',
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    backgroundColor: const Color(0xFFB3E5FC),
+                    behavior: SnackBarBehavior.floating,
+                    elevation: 4,
                   ),
                 );
               },
