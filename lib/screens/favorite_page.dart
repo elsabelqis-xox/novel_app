@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/bookshelf_model.dart';
 import '../models/favorite_model.dart';
+import '../models/bookshelf_model.dart';
 import 'detail_page.dart';
 
-class BookshelfPage extends StatelessWidget {
-  const BookshelfPage({super.key});
+class FavoritePage extends StatelessWidget {
+  const FavoritePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Rak Buku Saya')),
-      body: Consumer<BookshelfModel>(
-        builder: (context, bookshelfModel, child) {
-          if (bookshelfModel.bookshelf.isEmpty) {
+      appBar: AppBar(title: const Text('Buku Favorit Saya')),
+      body: Consumer<FavoriteModel>(
+        builder: (context, favoriteModel, child) {
+          if (favoriteModel.favoriteNovels.isEmpty) {
             return const Center(
               child: Text(
-                'Rak bukumu masih kosong. Yuk, tambahkan buku dari halaman Beranda atau Cari!',
+                'Belum ada buku favorit. Tambahkan favorit dari halaman Beranda atau Cari!',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16, color: Colors.grey),
               ),
@@ -24,9 +24,9 @@ class BookshelfPage extends StatelessWidget {
           } else {
             return ListView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: bookshelfModel.bookshelf.length,
+              itemCount: favoriteModel.favoriteNovels.length,
               itemBuilder: (context, index) {
-                final book = bookshelfModel.bookshelf[index];
+                final book = favoriteModel.favoriteNovels[index];
                 return Card(
                   margin: const EdgeInsets.symmetric(vertical: 8),
                   elevation: 4,
@@ -98,42 +98,62 @@ class BookshelfPage extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 const SizedBox(height: 8),
-                                Consumer<FavoriteModel>(
-                                  builder: (context, favoriteModel, child) {
+                                Consumer2<BookshelfModel, FavoriteModel>(
+                                  builder: (
+                                    context,
+                                    bookshelfModel,
+                                    favoriteModel,
+                                    child,
+                                  ) {
+                                    final bool isInBookshelf = bookshelfModel
+                                        .isInBookshelf(book);
                                     final bool isFavorite = favoriteModel
                                         .isFavorite(book);
                                     return Row(
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
                                         IconButton(
-                                          icon: const Icon(
-                                            Icons.bookmark_remove,
+                                          icon: Icon(
+                                            isInBookshelf
+                                                ? Icons.bookmark
+                                                : Icons.bookmark_border,
+                                            color:
+                                                isInBookshelf
+                                                    ? Theme.of(
+                                                      context,
+                                                    ).colorScheme.primary
+                                                    : Colors.grey,
                                           ),
-                                          color: Colors.red,
                                           onPressed: () {
-                                            bookshelfModel.removeBook(book);
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                  '${book['title']} dihapus dari Rak Buku.',
+                                            if (isInBookshelf) {
+                                              bookshelfModel.removeBook(book);
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    '${book['title']} dihapus dari Rak Buku.',
+                                                  ),
                                                 ),
-                                              ),
-                                            );
+                                              );
+                                            } else {
+                                              bookshelfModel.addBook(book);
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    '${book['title']} disimpan ke Rak Buku.',
+                                                  ),
+                                                ),
+                                              );
+                                            }
                                           },
                                         ),
 
                                         IconButton(
-                                          icon: Icon(
-                                            isFavorite
-                                                ? Icons.favorite
-                                                : Icons.favorite_border,
-                                            color:
-                                                isFavorite
-                                                    ? Colors.red
-                                                    : Colors.grey,
-                                          ),
+                                          icon: const Icon(Icons.favorite),
+                                          color: Colors.red,
                                           onPressed: () {
                                             favoriteModel.toggleFavorite(book);
                                             ScaffoldMessenger.of(
@@ -141,9 +161,7 @@ class BookshelfPage extends StatelessWidget {
                                             ).showSnackBar(
                                               SnackBar(
                                                 content: Text(
-                                                  isFavorite
-                                                      ? '${book['title']} dihapus dari Favorit.'
-                                                      : '${book['title']} ditambahkan ke Favorit.',
+                                                  '${book['title']} dihapus dari Favorit.',
                                                 ),
                                               ),
                                             );

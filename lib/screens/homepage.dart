@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:badges/badges.dart' as badges;
-import 'package:novel_app/screens/detail_page.dart';
-import 'bookshelf_page.dart';
 import '../models/bookshelf_model.dart';
-import '../models/theme_provider.dart';
-import 'package:novel_app/screens/search_page.dart';
+import '../models/favorite_model.dart';
+import '../services/book_service.dart';
+import 'detail_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -15,195 +13,227 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final TextEditingController _searchController = TextEditingController();
-  String _searchKeyword = '';
+  List<Map<String, String>> _trendingBooks = [];
+  bool _isLoading = true;
+  String _errorMessage = '';
 
-  final List<Map<String, String>> _allNovels = [
-    {
-      'title': 'Langit yang Tak Sama',
-      'author': 'Ayu Lestari',
-      'description': 'Kisah cinta dua dunia yang tak pernah saling mengerti.',
-      'image':
-          'https://images.unsplash.com/photo-1606112219348-204d7d8b94ee?auto=format&fit=crop&w=500&q=80',
-    },
-    {
-      'title': 'Hujan di Ujung Senja',
-      'author': 'Rizky Fajar',
-      'description': 'Puisi kehidupan dan kehilangan yang abadi.',
-      'image':
-          'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=500&q=80',
-    },
-    {
-      'title': 'Rembulan di Balik Awan',
-      'author': 'Dewi Anggraini',
-      'description': 'Perjalanan panjang mencari makna hidup.',
-      'image':
-          'https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=500&q=80',
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _fetchTrendingBooks();
+  }
+
+  Future<void> _fetchTrendingBooks() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
+    try {
+      final List<Map<String, String>> books =
+          await BookService.fetchTrendingBooks();
+      if (mounted) {
+        setState(() {
+          _trendingBooks = books;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Gagal memuat buku trending: ${e.toString()}';
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final filteredNovels =
-        _allNovels.where((novel) {
-          final title = novel['title']!.toLowerCase();
-          final author = novel['author']!.toLowerCase();
-          final keyword = _searchKeyword.toLowerCase();
-          return title.contains(keyword) || author.contains(keyword);
-        }).toList();
-
-    final themeProvider = Provider.of<ThemeProvider>(context);
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('📚 NovelKu'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        centerTitle: true,
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Cari judul atau penulis...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+      appBar: AppBar(title: const Text('Beranda')),
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _errorMessage.isNotEmpty
+              ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(_errorMessage, textAlign: TextAlign.center),
+                      const SizedBox(height: 10),
+                      ElevatedButton(
+                        onPressed: _fetchTrendingBooks,
+                        child: const Text('Coba Lagi'),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+              : ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: _trendingBooks.length,
+                itemBuilder: (context, index) {
+                  final book = _trendingBooks[index];
+
+                  return TrendingBookCard(book: book);
+                },
+              ),
+    );
+  }
+}
+
+class TrendingBookCard extends StatelessWidget {
+  final Map<String, String> book;
+
+  const TrendingBookCard({super.key, required this.book});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (context) => DetailPage(
+                    title: book['title']!,
+                    author: book['author']!,
+                    description: book['description']!,
+                    imageurl: book['image']!,
+                    olid: book['olid'],
+                  ),
+            ),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(
+                  book['image']!,
+                  height: 100,
+                  width: 70,
+                  fit: BoxFit.cover,
+                  errorBuilder:
+                      (context, error, stackTrace) => Container(
+                        height: 100,
+                        width: 70,
+                        color: Colors.grey[200],
+                        child: Icon(
+                          Icons.broken_image,
+                          size: 50,
+                          color: Colors.grey[400],
+                        ),
+                      ),
                 ),
               ),
-              onChanged: (value) {
-                setState(() {
-                  _searchKeyword = value;
-                });
-              },
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: filteredNovels.length,
-              itemBuilder: (context, index) {
-                final novel = filteredNovels[index];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(16),
-                    leading: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        novel['image']!,
-                        width: 60,
-                        height: 80,
-                        fit: BoxFit.cover,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      book['title']!,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    title: Text(
-                      novel['title']!,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    const SizedBox(height: 4),
+                    Text(
+                      book['author']!,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontStyle: FontStyle.italic,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(novel['author']!),
-                        const SizedBox(height: 4),
-                        Text(
-                          novel['description']!,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) => DetailPage(
-                                title: novel['title']!,
-                                author: novel['author']!,
-                                description: novel['description']!,
-                                imageurl: novel['image']!,
+                    const SizedBox(height: 8),
+                    Consumer2<BookshelfModel, FavoriteModel>(
+                      builder: (context, bookshelfModel, favoriteModel, child) {
+                        final bool isInBookshelf = bookshelfModel.isInBookshelf(
+                          book,
+                        );
+                        final bool isFavorite = favoriteModel.isFavorite(book);
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            // Tombol Bookshelf
+                            IconButton(
+                              icon: Icon(
+                                isInBookshelf
+                                    ? Icons.bookmark
+                                    : Icons.bookmark_border,
+                                color:
+                                    isInBookshelf
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Colors.grey,
                               ),
-                        ),
-                      );
-                    },
-                  ),
-                );
-              },
-            ),
+                              onPressed: () {
+                                if (isInBookshelf) {
+                                  bookshelfModel.removeBook(book);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        '${book['title']} dihapus dari Rak Buku.',
+                                      ),
+                                    ),
+                                  );
+                                } else {
+                                  bookshelfModel.addBook(book);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        '${book['title']} disimpan ke Rak Buku.',
+                                      ),
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
+
+                            IconButton(
+                              icon: Icon(
+                                isFavorite
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                color: isFavorite ? Colors.red : Colors.grey,
+                              ),
+                              onPressed: () {
+                                favoriteModel.toggleFavorite(book);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      isFavorite
+                                          ? '${book['title']} dihapus dari Favorit.'
+                                          : '${book['title']} ditambahkan ke Favorit.',
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-      bottomNavigationBar: BottomAppBar(
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 6.0,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            IconButton(
-              icon: const Icon(Icons.home),
-              tooltip: 'Cari Novel',
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SearchPage()),
-                );
-              },
-            ),
-            Consumer<ThemeProvider>(
-              builder: (context, themeProvider, child) {
-                return IconButton(
-                  icon: Icon(
-                    themeProvider.themeMode == ThemeMode.dark
-                        ? Icons.wb_sunny_outlined
-                        : Icons.dark_mode_outlined,
-                  ),
-                  tooltip: 'Ubah Tema',
-                  onPressed: () {
-                    themeProvider.toggleTheme();
-                  },
-                );
-              },
-            ),
-            const SizedBox(width: 48),
-            IconButton(
-              icon: const Icon(Icons.settings),
-              tooltip: 'Pengaturan',
-              onPressed: () {},
-            ),
-          ],
         ),
       ),
-      floatingActionButton: badges.Badge(
-        position: badges.BadgePosition.topEnd(top: -5, end: -5),
-        badgeContent: Consumer<BookshelfModel>(
-          builder: (context, bookshelfModel, child) {
-            return Text(
-              '${bookshelfModel.bookshelf.length}',
-              style: const TextStyle(color: Colors.white, fontSize: 12),
-            );
-          },
-        ),
-        badgeStyle: const badges.BadgeStyle(badgeColor: Colors.redAccent),
-        child: FloatingActionButton(
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          tooltip: 'Lihat Rak Buku',
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const BookshelfPage()),
-            );
-          },
-          child: const Icon(Icons.bookmark),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }

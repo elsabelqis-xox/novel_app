@@ -1,6 +1,8 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import '../models/bookshelf_model.dart';
+import '../models/favorite_model.dart';
+import '../services/book_service.dart';
 import 'detail_page.dart';
 
 class SearchPage extends StatefulWidget {
@@ -12,91 +14,277 @@ class SearchPage extends StatefulWidget {
 
 class _SearchPageState extends State<SearchPage> {
   final TextEditingController _searchController = TextEditingController();
-  List<dynamic> _searchResults = [];
+  List<Map<String, String>> _searchResults = [];
   bool _isLoading = false;
+  String _errorMessage = '';
 
-  Future<void> searchBooks(String keyword) async {
-    setState(() => _isLoading = true);
-    final url = 'https://openlibrary.org/search.json?q=$keyword&limit=10';
-
-    final response = await http.get(Uri.parse(url));
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
+  Future<void> _performSearch(String query) async {
+    if (query.isEmpty) {
       setState(() {
-        _searchResults = data['docs'];
-        _isLoading = false;
+        _searchResults = [];
+        _errorMessage = '';
       });
-    } else {
-      setState(() => _isLoading = false);
-      throw Exception('Gagal mengambil data buku');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
+
+    try {
+      final List<Map<String, String>> results = await BookService.searchBooks(
+        query,
+      );
+      if (mounted) {
+        setState(() {
+          _searchResults = results;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Gagal melakukan pencarian: ${e.toString()}';
+          _isLoading = false;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Cari Buku')),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
+      appBar: AppBar(
+        title: const Text('Cari Buku'),
+        // Warna dan gaya teks sudah ditangani oleh theme di main.dart
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Masukkan judul atau penulis...',
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.search),
-                  onPressed: () => searchBooks(_searchController.text),
-                ),
+                labelText: 'Judul atau Penulis',
+                hintText: 'Cari buku di Open Library',
+                prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
               ),
+              onSubmitted: (query) => _performSearch(query),
             ),
-          ),
-          _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : Expanded(
-                child: ListView.builder(
-                  itemCount: _searchResults.length,
-                  itemBuilder: (context, index) {
-                    final book = _searchResults[index];
-                    final title = book['title'] ?? 'Tanpa Judul';
-                    final author =
-                        (book['author_name'] != null &&
-                                book['author_name'].isNotEmpty)
-                            ? book['author_name'][0]
-                            : 'Tanpa Penulis';
-                    final coverId = book['cover_i'];
-                    final imageUrl =
-                        coverId != null
-                            ? 'https://covers.openlibrary.org/b/id/$coverId-M.jpg'
-                            : 'https://via.placeholder.com/100x150?text=No+Image';
-
-                    return ListTile(
-                      leading: Image.network(imageUrl, width: 50, height: 75),
-                      title: Text(title),
-                      subtitle: Text(author),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (_) => DetailPage(
-                                  title: title,
-                                  author: author,
-                                  description:
-                                      'Deskripsi belum tersedia dari API',
-                                  imageurl: imageUrl,
+            const SizedBox(height: 16),
+            _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _errorMessage.isNotEmpty
+                ? Center(
+                  child: Text(
+                    _errorMessage,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                )
+                : Expanded(
+                  child:
+                      _searchResults.isEmpty
+                          ? const Center(
+                            child: Text('Tidak ada hasil pencarian.'),
+                          )
+                          : ListView.builder(
+                            itemCount: _searchResults.length,
+                            itemBuilder: (context, index) {
+                              final book = _searchResults[index];
+                              return Card(
+                                margin: const EdgeInsets.symmetric(vertical: 8),
+                                elevation: 4,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
+                                child: InkWell(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) => DetailPage(
+                                              title: book['title']!,
+                                              author: book['author']!,
+                                              description: book['description']!,
+                                              imageurl: book['image']!,
+                                              olid: book['olid'],
+                                            ),
+                                      ),
+                                    );
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(12),
+                                    child: Row(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          child: Image.network(
+                                            book['image']!,
+                                            height: 100,
+                                            width: 70,
+                                            fit: BoxFit.cover,
+                                            errorBuilder:
+                                                (context, error, stackTrace) =>
+                                                    Container(
+                                                      height: 100,
+                                                      width: 70,
+                                                      color: Colors.grey[200],
+                                                      child: Icon(
+                                                        Icons.broken_image,
+                                                        size: 50,
+                                                        color: Colors.grey[400],
+                                                      ),
+                                                    ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                book['title']!,
+                                                style: const TextStyle(
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                book['author']!,
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  fontStyle: FontStyle.italic,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Consumer2<
+                                                BookshelfModel,
+                                                FavoriteModel
+                                              >(
+                                                builder: (
+                                                  context,
+                                                  bookshelfModel,
+                                                  favoriteModel,
+                                                  child,
+                                                ) {
+                                                  final bool isInBookshelf =
+                                                      bookshelfModel
+                                                          .isInBookshelf(book);
+                                                  final bool isFavorite =
+                                                      favoriteModel.isFavorite(
+                                                        book,
+                                                      );
+                                                  return Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment.end,
+                                                    children: [
+                                                      IconButton(
+                                                        icon: Icon(
+                                                          isInBookshelf
+                                                              ? Icons.bookmark
+                                                              : Icons
+                                                                  .bookmark_border,
+                                                          color:
+                                                              isInBookshelf
+                                                                  ? Theme.of(
+                                                                        context,
+                                                                      )
+                                                                      .colorScheme
+                                                                      .primary
+                                                                  : Colors.grey,
+                                                        ),
+                                                        onPressed: () {
+                                                          if (isInBookshelf) {
+                                                            bookshelfModel
+                                                                .removeBook(
+                                                                  book,
+                                                                );
+                                                            ScaffoldMessenger.of(
+                                                              context,
+                                                            ).showSnackBar(
+                                                              SnackBar(
+                                                                content: Text(
+                                                                  '${book['title']} dihapus dari Rak Buku.',
+                                                                ),
+                                                              ),
+                                                            );
+                                                          } else {
+                                                            bookshelfModel
+                                                                .addBook(book);
+                                                            ScaffoldMessenger.of(
+                                                              context,
+                                                            ).showSnackBar(
+                                                              SnackBar(
+                                                                content: Text(
+                                                                  '${book['title']} disimpan ke Rak Buku.',
+                                                                ),
+                                                              ),
+                                                            );
+                                                          }
+                                                        },
+                                                      ),
+                                                      IconButton(
+                                                        icon: Icon(
+                                                          isFavorite
+                                                              ? Icons.favorite
+                                                              : Icons
+                                                                  .favorite_border,
+                                                          color:
+                                                              isFavorite
+                                                                  ? Colors.red
+                                                                  : Colors.grey,
+                                                        ),
+                                                        onPressed: () {
+                                                          favoriteModel
+                                                              .toggleFavorite(
+                                                                book,
+                                                              );
+                                                          ScaffoldMessenger.of(
+                                                            context,
+                                                          ).showSnackBar(
+                                                            SnackBar(
+                                                              content: Text(
+                                                                isFavorite
+                                                                    ? '${book['title']} dihapus dari Favorit.'
+                                                                    : '${book['title']} ditambahkan ke Favorit.',
+                                                              ),
+                                                            ),
+                                                          );
+                                                        },
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
                           ),
-                        );
-                      },
-                    );
-                  },
                 ),
-              ),
-        ],
+          ],
+        ),
       ),
     );
   }
