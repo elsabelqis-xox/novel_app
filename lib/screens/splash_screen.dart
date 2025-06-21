@@ -31,9 +31,7 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
-        // Menggunakan Stack untuk menempatkan widget secara berlapis
         children: [
-          // Gambar Libera di tengah layar
           Center(
             child: Image.asset(
               'assets/images/libera_splash.png',
@@ -43,34 +41,24 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
           ),
 
-          // Teks "from Elsa" diletakkan di bagian bawah layar
           Align(
-            alignment:
-                Alignment
-                    .bottomCenter, // Menempatkan konten di bagian bawah tengah
+            alignment: Alignment.bottomCenter,
             child: Padding(
-              padding: const EdgeInsets.only(
-                bottom: 50,
-              ), // Jarak dari bawah layar (sisakan sedikit)
+              padding: const EdgeInsets.only(bottom: 50),
               child: Column(
-                mainAxisSize:
-                    MainAxisSize
-                        .min, // Agar Column hanya mengambil ruang secukupnya
+                mainAxisSize: MainAxisSize.min,
                 children: const [
                   Text(
                     'from',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey, // Tetap abu-abu untuk "from"
-                    ),
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
                   ),
-                  SizedBox(height: 5), // Jarak kecil antara "from" dan "Elsa"
+                  SizedBox(height: 5),
                   Text(
-                    'Elsa 😊', // Teks "Elsa" dengan emoji senyum kalem (bukan ketawa)
+                    'Elsa 😊',
                     style: TextStyle(
-                      fontSize: 28, // Ukuran font "Elsa" sedikit lebih besar
-                      fontWeight: FontWeight.bold, // Tebal
-                      color: Colors.blue, // Warna biru untuk "Elsa"
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
                     ),
                   ),
                 ],

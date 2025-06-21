@@ -34,19 +34,16 @@ class _HomeContentPageState extends State<HomeContentPage> {
         _errorMessage = '';
       });
 
-      // Fetch Popular Novels (using trending/now as a proxy for popular)
       _popularNovels = await _fetchBooksFromOpenLibrary(
         '$_openLibraryBaseUrl/trending/now.json',
         'Popular',
       );
 
-      // Fetch Latest Novels (searching by a general query and sorting by publish year)
       _latestNovels = await _fetchBooksFromOpenLibrary(
         '$_openLibraryBaseUrl/search.json?q=novel&sort=new',
         'Latest',
       );
 
-      // Fetch Recommended Novels (searching by a general subject like 'fantasy')
       _recommendedNovels = await _fetchBooksFromOpenLibrary(
         '$_openLibraryBaseUrl/search.json?q=fiction&subject=fantasy',
         'Recommended',
@@ -74,45 +71,34 @@ class _HomeContentPageState extends State<HomeContentPage> {
       final data = json.decode(response.body);
       List<Map<String, String>> books = [];
 
-      // Handle different API response structures
       List<dynamic> docs;
       if (data.containsKey('works')) {
-        // For /trending/now which can sometimes return 'works'
         docs = data['works'];
       } else if (data.containsKey('docs')) {
-        // For /search.json
         docs = data['docs'];
       } else if (data.containsKey('entries')) {
-        // For /subjects/{subject}.json (though search is more general)
         docs = data['entries'];
       } else {
-        return []; // Unknown format
+        return [];
       }
 
       for (var doc in docs) {
-        // PERBAIKAN UTAMA DI SINI: PASTIKAN SEMUA NILAI NON-NULL UNTUK MAP<STRING, STRING>
         String title = doc['title']?.toString() ?? 'Judul Tidak Diketahui';
         String author =
             (doc['author_name'] != null && doc['author_name'].isNotEmpty)
                 ? doc['author_name'][0].toString()
                 : 'Penulis Tidak Diketahui';
 
-        // OLID perlu diperhatikan, pastikan tidak null sebelum digunakan untuk fetch description
         String? olidRaw = doc['key']?.toString();
         String? olid;
         if (olidRaw != null) {
-          olid = olidRaw.replaceAll(
-            '/works/',
-            '',
-          ); // Get OLID for works, remove prefix
+          olid = olidRaw.replaceAll('/works/', '');
         }
 
         String? coverId = doc['cover_i']?.toString();
-        String bookUrl =
-            '$_openLibraryBaseUrl${doc['key'] ?? ''}'; // Pastikan URL selalu string, tambahkan '' jika null
+        String bookUrl = '$_openLibraryBaseUrl${doc['key'] ?? ''}';
 
-        // Hanya proses jika OLID valid dan tersedia untuk deskripsi
-        String description = 'Deskripsi Tidak Tersedia'; // Default value
+        String description = 'Deskripsi Tidak Tersedia';
         if (olid != null && olid.isNotEmpty) {
           try {
             description = await _fetchBookDescription(olid);
@@ -125,18 +111,16 @@ class _HomeContentPageState extends State<HomeContentPage> {
         String imageUrl = _getCoverImageUrl(coverId);
 
         books.add({
-          'title': title, // Sudah dijamin non-null
-          'author': author, // Sudah dijamin non-null
-          'description': description, // Sudah dijamin non-null
-          'imageUrl': imageUrl, // Sudah dijamin non-null
-          'openLibraryUrl': bookUrl, // Sudah dijamin non-null
-          'olid':
-              olid ??
-              '', // Pastikan olid selalu string, jika null jadi string kosong
+          'title': title,
+          'author': author,
+          'description': description,
+          'imageUrl': imageUrl,
+          'openLibraryUrl': bookUrl,
+          'olid': olid ?? '',
         });
 
         if (books.length >= 10) {
-          break; // Limit to 10 books per category for display
+          break;
         }
       }
       return books;
@@ -158,19 +142,18 @@ class _HomeContentPageState extends State<HomeContentPage> {
         if (desc is String) {
           return desc;
         } else if (desc is Map && desc.containsKey('value')) {
-          return desc['value']?.toString() ??
-              ''; // Pastikan toString() dan fallback ke ''
+          return desc['value']?.toString() ?? '';
         }
       }
     }
-    return 'Deskripsi tidak tersedia.'; // Return default string if no description found or fetch fails
+    return 'Deskripsi tidak tersedia.';
   }
 
   String _getCoverImageUrl(String? coverId) {
     if (coverId != null && coverId.isNotEmpty) {
-      return '$_coversBaseUrl/id/$coverId-M.jpg'; // Medium size cover
+      return '$_coversBaseUrl/id/$coverId-M.jpg';
     }
-    return 'https://via.placeholder.com/150x200?text=No+Cover'; // Placeholder image
+    return 'https://via.placeholder.com/150x200?text=No+Cover';
   }
 
   Widget _buildBookList(List<Map<String, String>> books) {
@@ -180,7 +163,7 @@ class _HomeContentPageState extends State<HomeContentPage> {
       );
     }
     return SizedBox(
-      height: 250, // Adjust height as needed
+      height: 250,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: books.length,
@@ -193,44 +176,64 @@ class _HomeContentPageState extends State<HomeContentPage> {
                 MaterialPageRoute(
                   builder:
                       (context) => DetailPage(
-                        // PERBAIKAN UTAMA DI SINI: PENAMAAN PARAMETER DAN PENGHAPUSAN '!'
-                        title:
-                            book['title']!, // title dan author harusnya sudah aman non-null dari Map
+                        title: book['title']!,
                         author: book['author']!,
-                        description:
-                            book['description'], // TIDAK PAKAI '!' karena di DetailPage sudah String?
-                        imageUrl:
-                            book['imageUrl'], // TIDAK PAKAI '!' dan perbaiki 'imageurl' jadi 'imageUrl'
-                        olid: book['olid'], // Cukup begini
-                        openLibraryUrl:
-                            book['openLibraryUrl'], // TIDAK PAKAI '!'
+                        description: book['description'],
+                        imageUrl: book['imageUrl'],
+                        olid: book['olid'],
+                        openLibraryUrl: book['openLibraryUrl'],
                       ),
                 ),
               );
             },
             child: Container(
-              width: 150, // Adjust width as needed
-              margin: const EdgeInsets.symmetric(horizontal: 8.0),
+              width: 150,
+              margin: const EdgeInsets.only(right: 16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8.0),
                     child: Image.network(
-                      // PERBAIKAN DI SINI JUGA: PENAMAAN PARAMETER DAN FALLBACK
-                      book['imageUrl']!, // Ini seharusnya sudah non-null dari Map
+                      book['imageUrl'] ??
+                          'https://via.placeholder.com/150x200?text=No+Cover',
                       height: 180,
                       width: 150,
                       fit: BoxFit.cover,
+
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          height: 180,
+                          width: 150,
+                          color: Colors.grey[200],
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              value:
+                                  loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                          loadingProgress.expectedTotalBytes!
+                                      : null,
+                              strokeWidth: 2.0,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
                           height: 180,
                           width: 150,
                           color: Colors.grey[200],
-                          child: Icon(
-                            Icons.book,
-                            size: 50,
-                            color: Colors.grey[400],
+                          child: Center(
+                            child: Icon(
+                              Icons.book,
+                              size: 50,
+                              color: Colors.grey[400],
+                            ),
                           ),
                         );
                       },
@@ -238,13 +241,14 @@ class _HomeContentPageState extends State<HomeContentPage> {
                   ),
                   const SizedBox(height: 8.0),
                   Text(
-                    book['title']!, // Seharusnya aman non-null dari Map
+                    book['title']!,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
+                  const SizedBox(height: 4.0),
                   Text(
-                    book['author']!, // Seharusnya aman non-null dari Map
+                    book['author']!,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontSize: 12, color: Colors.grey),
@@ -261,7 +265,11 @@ class _HomeContentPageState extends State<HomeContentPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Open Library Books📚')),
+      appBar: AppBar(
+        title: const Text('Open Library Books📚'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+      ),
       body:
           _isLoading
               ? const Center(child: CircularProgressIndicator())
@@ -273,39 +281,33 @@ class _HomeContentPageState extends State<HomeContentPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Novel Populer',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
+                      _buildSectionHeader('Novel Populer'),
                       _buildBookList(_popularNovels),
-                      const SizedBox(height: 20),
-                      const Text(
-                        'Novel Terbaru',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 24),
+                      _buildSectionHeader('Novel Terbaru'),
                       _buildBookList(_latestNovels),
-                      const SizedBox(height: 20),
-                      const Text(
-                        'Novel Rekomendasi',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 24),
+                      _buildSectionHeader('Novel Rekomendasi'),
                       _buildBookList(_recommendedNovels),
+                      const SizedBox(height: 16),
                     ],
                   ),
                 ),
               ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10.0),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
+      ),
     );
   }
 }

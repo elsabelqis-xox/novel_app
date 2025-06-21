@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/favorite_model.dart';
-import '../models/bookshelf_model.dart'; // Diperlukan karena ada interaksi dengan BookshelfModel
+import '../models/bookshelf_model.dart';
 import 'detail_page.dart';
 
 class FavoritePage extends StatelessWidget {
@@ -10,15 +10,22 @@ class FavoritePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Buku Favorit Saya❤️')),
+      appBar: AppBar(
+        title: const Text('Buku Favorit Saya❤️'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+      ),
       body: Consumer<FavoriteModel>(
         builder: (context, favoriteModel, child) {
           if (favoriteModel.favoriteNovels.isEmpty) {
             return const Center(
-              child: Text(
-                'Belum ada buku favorit. Tambahkan favorit dari halaman Beranda atau Cari!',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.grey),
+              child: Padding(
+                padding: EdgeInsets.all(24.0),
+                child: Text(
+                  'Belum ada buku favorit. Tambahkan favorit dari halaman Beranda atau Cari!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                ),
               ),
             );
           } else {
@@ -40,22 +47,14 @@ class FavoritePage extends StatelessWidget {
                         MaterialPageRoute(
                           builder:
                               (context) => DetailPage(
-                                // PASTIKAN SEMUA PARAMETER INI SESUAI DENGAN DEFINISI DI DETAIL_PAGE.DART
-                                // title dan author adalah required dan harus non-null
-                                title:
-                                    book['title'] ??
-                                    'Judul Tidak Diketahui', // Tambahkan ?? jika ini bisa null
+                                title: book['title'] ?? 'Judul Tidak Diketahui',
                                 author:
-                                    book['author'] ??
-                                    'Penulis Tidak Diketahui', // Tambahkan ?? jika ini bisa null
-                                // description, imageUrl, olid, openLibraryUrl adalah String? (nullable) di DetailPage
-                                // Jadi, cukup panggil langsung tanpa '!' di sini
-                                description: book['description'], // Hapus '!'
-                                imageUrl:
-                                    book['imageUrl'], // PERBAIKAN: Gunakan 'imageUrl' (camelCase), Hapus '!'
+                                    book['author'] ?? 'Penulis Tidak Diketahui',
+
+                                description: book['description'],
+                                imageUrl: book['imageUrl'],
                                 olid: book['olid'],
-                                openLibraryUrl:
-                                    book['openLibraryUrl'], // Hapus '!'
+                                openLibraryUrl: book['openLibraryUrl'],
                               ),
                         ),
                       );
@@ -63,27 +62,58 @@ class FavoritePage extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.all(12),
                       child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: Image.network(
-                              // PERBAIKAN: Gunakan 'imageUrl' (camelCase) dan tambahkan fallback
                               book['imageUrl'] ??
                                   'https://via.placeholder.com/70x100?text=No+Image',
                               height: 100,
                               width: 70,
                               fit: BoxFit.cover,
-                              errorBuilder:
-                                  (context, error, stackTrace) => Container(
-                                    height: 100,
-                                    width: 70,
-                                    color: Colors.grey[200],
-                                    child: Icon(
-                                      Icons.broken_image,
-                                      size: 50,
-                                      color: Colors.grey[400],
+
+                              loadingBuilder: (
+                                context,
+                                child,
+                                loadingProgress,
+                              ) {
+                                if (loadingProgress == null) return child;
+                                return Container(
+                                  height: 100,
+                                  width: 70,
+                                  color: Colors.grey[200],
+                                  child: Center(
+                                    child: CircularProgressIndicator(
+                                      value:
+                                          loadingProgress.expectedTotalBytes !=
+                                                  null
+                                              ? loadingProgress
+                                                      .cumulativeBytesLoaded /
+                                                  loadingProgress
+                                                      .expectedTotalBytes!
+                                              : null,
+                                      strokeWidth: 2.0,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Theme.of(context).colorScheme.primary,
+                                      ),
                                     ),
                                   ),
+                                );
+                              },
+
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  height: 100,
+                                  width: 70,
+                                  color: Colors.grey[200],
+                                  child: Icon(
+                                    Icons.book,
+                                    size: 50,
+                                    color: Colors.grey[400],
+                                  ),
+                                );
+                              },
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -92,8 +122,7 @@ class FavoritePage extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  book['title'] ??
-                                      'Judul Tidak Diketahui', // Tambahkan ?? jika ini bisa null
+                                  book['title'] ?? 'Judul Tidak Diketahui',
                                   style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
@@ -103,17 +132,19 @@ class FavoritePage extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  book['author'] ??
-                                      'Penulis Tidak Diketahui', // Tambahkan ?? jika ini bisa null
+                                  book['author'] ?? 'Penulis Tidak Diketahui',
                                   style: const TextStyle(
                                     fontSize: 14,
                                     fontStyle: FontStyle.italic,
+                                    color:
+                                        Colors
+                                            .grey, // Warna teks penulis lebih soft
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 const SizedBox(height: 8),
-                                // Menggunakan Consumer2 karena berinteraksi dengan dua model: Bookshelf dan Favorite
+
                                 Consumer2<BookshelfModel, FavoriteModel>(
                                   builder: (
                                     context,
@@ -124,9 +155,8 @@ class FavoritePage extends StatelessWidget {
                                     final bool isInBookshelf = bookshelfModel
                                         .isInBookshelf(book);
                                     final bool isFavorite = favoriteModel
-                                        .isFavorite(
-                                          book,
-                                        ); // Pastikan ini juga dicek
+                                        .isFavorite(book);
+
                                     return Row(
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
