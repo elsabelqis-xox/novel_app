@@ -105,8 +105,9 @@ class TrendingBookCard extends StatelessWidget {
                     title: book['title']!,
                     author: book['author']!,
                     description: book['description']!,
-                    imageurl: book['image']!,
+                    imageUrl: book['imageUrl']!,
                     olid: book['olid'],
+                    openLibraryUrl: book['openLibraryUrl']!,
                   ),
             ),
           );

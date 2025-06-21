@@ -56,7 +56,7 @@ class _SearchPageState extends State<SearchPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cari Buku'),
+        title: const Text('Cari Buku🔍'),
         // Warna dan gaya teks sudah ditangani oleh theme di main.dart
       ),
       body: Padding(
@@ -111,11 +111,22 @@ class _SearchPageState extends State<SearchPage> {
                                       MaterialPageRoute(
                                         builder:
                                             (context) => DetailPage(
-                                              title: book['title']!,
-                                              author: book['author']!,
-                                              description: book['description']!,
-                                              imageurl: book['image']!,
+                                              title:
+                                                  book['title'] ??
+                                                  'Judul Tidak Diketahui',
+                                              author:
+                                                  book['author'] ??
+                                                  'Penulis Tidak Diketahui',
+                                              description:
+                                                  book['description'] ??
+                                                  'Deskripsi Tidak Tersedia',
+                                              imageUrl:
+                                                  book['imageUrl'] ??
+                                                  'https://via.placeholder.com/150',
                                               olid: book['olid'],
+                                              openLibraryUrl:
+                                                  book['openLibraryUrl'] ??
+                                                  'https://openLibrary.org/',
                                             ),
                                       ),
                                     );

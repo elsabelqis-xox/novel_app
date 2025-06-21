@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/bookshelf_model.dart';
-import '../models/favorite_model.dart';
+import '../models/favorite_model.dart'; // Pastikan ini diimpor jika digunakan
 import 'detail_page.dart';
 
 class BookshelfPage extends StatelessWidget {
@@ -10,7 +10,7 @@ class BookshelfPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Rak Buku Saya')),
+      appBar: AppBar(title: const Text('Rak Buku Saya🛒')),
       body: Consumer<BookshelfModel>(
         builder: (context, bookshelfModel, child) {
           if (bookshelfModel.bookshelf.isEmpty) {
@@ -40,11 +40,21 @@ class BookshelfPage extends StatelessWidget {
                         MaterialPageRoute(
                           builder:
                               (context) => DetailPage(
-                                title: book['title']!,
-                                author: book['author']!,
-                                description: book['description']!,
-                                imageurl: book['image']!,
+                                // PASTIKAN SEMUA PARAMETER INI SESUAI DENGAN DEFINISI DI DETAIL_PAGE.DART
+                                // title dan author adalah required dan harus non-null
+                                title:
+                                    book['title'] ??
+                                    'Judul Tidak Diketahui', // Tambahkan ?? jika ini bisa null
+                                author:
+                                    book['author'] ??
+                                    'Penulis Tidak Diketahui', // Tambahkan ?? jika ini bisa null
+                                // description, imageUrl, olid, openLibraryUrl adalah String? (nullable) di DetailPage
+                                // Jadi, cukup panggil langsung tanpa '!' di sini
+                                description: book['description'],
+                                imageUrl:
+                                    book['imageUrl'], // PERBAIKAN: Gunakan 'imageUrl' (camelCase)
                                 olid: book['olid'],
+                                openLibraryUrl: book['openLibraryUrl'],
                               ),
                         ),
                       );
@@ -56,7 +66,9 @@ class BookshelfPage extends StatelessWidget {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: Image.network(
-                              book['image']!,
+                              // PERBAIKAN: Gunakan 'imageUrl' (camelCase) dan tambahkan fallback
+                              book['imageUrl'] ??
+                                  'https://via.placeholder.com/70x100?text=No+Image',
                               height: 100,
                               width: 70,
                               fit: BoxFit.cover,
@@ -79,7 +91,8 @@ class BookshelfPage extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  book['title']!,
+                                  book['title'] ??
+                                      'Judul Tidak Diketahui', // Tambahkan ?? jika ini bisa null
                                   style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
@@ -89,7 +102,8 @@ class BookshelfPage extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  book['author']!,
+                                  book['author'] ??
+                                      'Penulis Tidak Diketahui', // Tambahkan ?? jika ini bisa null
                                   style: const TextStyle(
                                     fontSize: 14,
                                     fontStyle: FontStyle.italic,
@@ -100,6 +114,8 @@ class BookshelfPage extends StatelessWidget {
                                 const SizedBox(height: 8),
                                 Consumer<FavoriteModel>(
                                   builder: (context, favoriteModel, child) {
+                                    // Pastikan book yang dicek di isFavorite adalah Map<String, String>
+                                    // yang sama formatnya dengan yang ada di FavoriteModel
                                     final bool isFavorite = favoriteModel
                                         .isFavorite(book);
                                     return Row(
@@ -117,13 +133,12 @@ class BookshelfPage extends StatelessWidget {
                                             ).showSnackBar(
                                               SnackBar(
                                                 content: Text(
-                                                  '${book['title']} dihapus dari Rak Buku.',
+                                                  '${book['title'] ?? 'Buku'} dihapus dari Rak Buku.',
                                                 ),
                                               ),
                                             );
                                           },
                                         ),
-
                                         IconButton(
                                           icon: Icon(
                                             isFavorite
@@ -142,8 +157,8 @@ class BookshelfPage extends StatelessWidget {
                                               SnackBar(
                                                 content: Text(
                                                   isFavorite
-                                                      ? '${book['title']} dihapus dari Favorit.'
-                                                      : '${book['title']} ditambahkan ke Favorit.',
+                                                      ? '${book['title'] ?? 'Buku'} dihapus dari Favorit.'
+                                                      : '${book['title'] ?? 'Buku'} ditambahkan ke Favorit.',
                                                 ),
                                               ),
                                             );

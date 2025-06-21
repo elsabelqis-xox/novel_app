@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/favorite_model.dart';
-import '../models/bookshelf_model.dart';
+import '../models/bookshelf_model.dart'; // Diperlukan karena ada interaksi dengan BookshelfModel
 import 'detail_page.dart';
 
 class FavoritePage extends StatelessWidget {
@@ -10,7 +10,7 @@ class FavoritePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Buku Favorit Saya')),
+      appBar: AppBar(title: const Text('Buku Favorit Saya❤️')),
       body: Consumer<FavoriteModel>(
         builder: (context, favoriteModel, child) {
           if (favoriteModel.favoriteNovels.isEmpty) {
@@ -40,11 +40,22 @@ class FavoritePage extends StatelessWidget {
                         MaterialPageRoute(
                           builder:
                               (context) => DetailPage(
-                                title: book['title']!,
-                                author: book['author']!,
-                                description: book['description']!,
-                                imageurl: book['image']!,
+                                // PASTIKAN SEMUA PARAMETER INI SESUAI DENGAN DEFINISI DI DETAIL_PAGE.DART
+                                // title dan author adalah required dan harus non-null
+                                title:
+                                    book['title'] ??
+                                    'Judul Tidak Diketahui', // Tambahkan ?? jika ini bisa null
+                                author:
+                                    book['author'] ??
+                                    'Penulis Tidak Diketahui', // Tambahkan ?? jika ini bisa null
+                                // description, imageUrl, olid, openLibraryUrl adalah String? (nullable) di DetailPage
+                                // Jadi, cukup panggil langsung tanpa '!' di sini
+                                description: book['description'], // Hapus '!'
+                                imageUrl:
+                                    book['imageUrl'], // PERBAIKAN: Gunakan 'imageUrl' (camelCase), Hapus '!'
                                 olid: book['olid'],
+                                openLibraryUrl:
+                                    book['openLibraryUrl'], // Hapus '!'
                               ),
                         ),
                       );
@@ -56,7 +67,9 @@ class FavoritePage extends StatelessWidget {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: Image.network(
-                              book['image']!,
+                              // PERBAIKAN: Gunakan 'imageUrl' (camelCase) dan tambahkan fallback
+                              book['imageUrl'] ??
+                                  'https://via.placeholder.com/70x100?text=No+Image',
                               height: 100,
                               width: 70,
                               fit: BoxFit.cover,
@@ -79,7 +92,8 @@ class FavoritePage extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  book['title']!,
+                                  book['title'] ??
+                                      'Judul Tidak Diketahui', // Tambahkan ?? jika ini bisa null
                                   style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
@@ -89,7 +103,8 @@ class FavoritePage extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  book['author']!,
+                                  book['author'] ??
+                                      'Penulis Tidak Diketahui', // Tambahkan ?? jika ini bisa null
                                   style: const TextStyle(
                                     fontSize: 14,
                                     fontStyle: FontStyle.italic,
@@ -98,6 +113,7 @@ class FavoritePage extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 const SizedBox(height: 8),
+                                // Menggunakan Consumer2 karena berinteraksi dengan dua model: Bookshelf dan Favorite
                                 Consumer2<BookshelfModel, FavoriteModel>(
                                   builder: (
                                     context,
@@ -108,7 +124,9 @@ class FavoritePage extends StatelessWidget {
                                     final bool isInBookshelf = bookshelfModel
                                         .isInBookshelf(book);
                                     final bool isFavorite = favoriteModel
-                                        .isFavorite(book);
+                                        .isFavorite(
+                                          book,
+                                        ); // Pastikan ini juga dicek
                                     return Row(
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
@@ -132,7 +150,7 @@ class FavoritePage extends StatelessWidget {
                                               ).showSnackBar(
                                                 SnackBar(
                                                   content: Text(
-                                                    '${book['title']} dihapus dari Rak Buku.',
+                                                    '${book['title'] ?? 'Buku'} dihapus dari Rak Buku.',
                                                   ),
                                                 ),
                                               );
@@ -143,17 +161,23 @@ class FavoritePage extends StatelessWidget {
                                               ).showSnackBar(
                                                 SnackBar(
                                                   content: Text(
-                                                    '${book['title']} disimpan ke Rak Buku.',
+                                                    '${book['title'] ?? 'Buku'} disimpan ke Rak Buku.',
                                                   ),
                                                 ),
                                               );
                                             }
                                           },
                                         ),
-
                                         IconButton(
-                                          icon: const Icon(Icons.favorite),
-                                          color: Colors.red,
+                                          icon: Icon(
+                                            isFavorite
+                                                ? Icons.favorite
+                                                : Icons.favorite_border,
+                                            color:
+                                                isFavorite
+                                                    ? Colors.red
+                                                    : Colors.grey,
+                                          ),
                                           onPressed: () {
                                             favoriteModel.toggleFavorite(book);
                                             ScaffoldMessenger.of(
@@ -161,7 +185,9 @@ class FavoritePage extends StatelessWidget {
                                             ).showSnackBar(
                                               SnackBar(
                                                 content: Text(
-                                                  '${book['title']} dihapus dari Favorit.',
+                                                  isFavorite
+                                                      ? '${book['title'] ?? 'Buku'} dihapus dari Favorit.'
+                                                      : '${book['title'] ?? 'Buku'} ditambahkan ke Favorit.',
                                                 ),
                                               ),
                                             );

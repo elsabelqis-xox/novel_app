@@ -1,223 +1,311 @@
 import 'package:flutter/material.dart';
-import 'package:novel_app/screens/detail_page.dart';
-import 'package:provider/provider.dart';
-import 'package:novel_app/models/favorite_model.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'detail_page.dart'; // Ensure this import is correct
 
 class HomeContentPage extends StatefulWidget {
-  const HomeContentPage({super.key});
+  const HomeContentPage({Key? key}) : super(key: key);
 
   @override
   State<HomeContentPage> createState() => _HomeContentPageState();
 }
 
 class _HomeContentPageState extends State<HomeContentPage> {
-  final List<Map<String, String>> _popularNovels = const [
-    {
-      'key': 'novel_popular_001',
-      'title': 'Langit yang Tak Sama (Populer)',
-      'author': 'Ayu Lestari',
-      'description': 'Kisah cinta dua dunia yang tak pernah saling mengerti.',
-      'image':
-          'https://images.unsplash.com/photo-1606112219348-204d7d8b94ee?auto=format&fit=crop&w=500&q=80',
-    },
-    {
-      'key': 'novel_popular_002',
-      'title': 'Hujan di Ujung Senja (Populer)',
-      'author': 'Rizky Fajar',
-      'description': 'Puisi kehidupan dan kehilangan yang abadi.',
-      'image':
-          'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=500&q=80',
-    },
-    {
-      'key': 'novel_popular_003',
-      'title': 'Rembulan di Balik Awan (Populer)',
-      'author': 'Dewi Anggraini',
-      'description': 'Perjalanan panjang mencari makna hidup.',
-      'image':
-          'https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=500&q=80',
-    },
-  ];
+  static const String _openLibraryBaseUrl = 'https://openlibrary.org';
+  static const String _coversBaseUrl = 'https://covers.openlibrary.org/b';
 
-  final List<Map<String, String>> _latestNovels = const [
-    {
-      'key': 'novel_latest_001',
-      'title': 'Novel Terbaru I',
-      'author': 'Sinta Budi',
-      'description': 'Petualangan seru di dunia fantasi yang menakjubkan.',
-      'image':
-          'https://images.unsplash.com/photo-1532012197247-f47feee5ee96?auto=format&fit=crop&w=500&q=80',
-    },
-    {
-      'key': 'novel_latest_002',
-      'title': 'Novel Terbaru II',
-      'author': 'Andi Pratama',
-      'description': 'Misteri yang harus dipecahkan di kota metropolitan.',
-      'image':
-          'https://images.unsplash.com/photo-1593345472152-b883c7b6c507?auto=format&fit=crop&w=500&q=80',
-    },
-    {
-      'key': 'novel_latest_003',
-      'title': 'Novel Terbaru III',
-      'author': 'Citra Kirana',
-      'description': 'Romansa klasik dengan sentuhan modern.',
-      'image':
-          'https://images.unsplash.com/photo-1549202534-733c37562f02?auto=format&fit=crop&w=500&q=80',
-    },
-  ];
+  List<Map<String, String>> _popularNovels = [];
+  List<Map<String, String>> _latestNovels = [];
+  List<Map<String, String>> _recommendedNovels = [];
 
-  final List<Map<String, String>> _recommendedNovels = const [
-    {
-      'key': 'novel_recommended_001',
-      'title': 'Penerbangan Malam',
-      'author': 'Budi Santoso',
-      'description': 'Fiksi ilmiah yang akan membawa Anda ke galaksi jauh.',
-      'image':
-          'https://images.unsplash.com/photo-1497633761757-5506041a7985?auto=format&fit=crop&w=500&q=80',
-    },
-    {
-      'key': 'novel_recommended_002',
-      'title': 'Lembah Rahasia',
-      'author': 'Dian Permata',
-      'description': 'Kisah petualangan dan penemuan diri di alam liar.',
-      'image':
-          'https://images.unsplash.com/photo-1629858763785-5b4813589c37?auto=format&fit=crop&w=500&q=80',
-    },
-    {
-      'key': 'novel_recommended_003',
-      'title': 'Antologi Senja',
-      'author': 'Kumpulan Penulis',
-      'description': 'Kumpulan cerita pendek yang menyentuh hati.',
-      'image':
-          'https://images.unsplash.com/photo-1558980394-fd9081e7d23a?auto=format&fit=crop&w=500&q=80',
-    },
-  ];
+  bool _isLoading = true;
+  String _errorMessage = '';
 
   @override
-  Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            'Libera Book',
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-          ),
-          centerTitle: true,
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          bottom: TabBar(
-            tabs: const [
-              Tab(text: 'Populer'),
-              Tab(text: 'Terbaru'),
-              Tab(text: 'Rekomendasi'),
-            ],
-            indicatorColor: Colors.white,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white70,
-          ),
-        ),
-        body: TabBarView(
-          children: [
-            _buildNovelList(_popularNovels),
-            _buildNovelList(_latestNovels),
-            _buildNovelList(_recommendedNovels),
-          ],
-        ),
-      ),
-    );
+  void initState() {
+    super.initState();
+    _fetchBookData();
   }
 
-  Widget _buildNovelList(List<Map<String, String>> novels) {
-    if (novels.isEmpty) {
-      return const Center(
-        child: Text('Belum ada novel tersedia di kategori ini.'),
+  Future<void> _fetchBookData() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = '';
+      });
+
+      // Fetch Popular Novels (using trending/now as a proxy for popular)
+      _popularNovels = await _fetchBooksFromOpenLibrary(
+        '$_openLibraryBaseUrl/trending/now.json',
+        'Popular',
+      );
+
+      // Fetch Latest Novels (searching by a general query and sorting by publish year)
+      _latestNovels = await _fetchBooksFromOpenLibrary(
+        '$_openLibraryBaseUrl/search.json?q=novel&sort=new',
+        'Latest',
+      );
+
+      // Fetch Recommended Novels (searching by a general subject like 'fantasy')
+      _recommendedNovels = await _fetchBooksFromOpenLibrary(
+        '$_openLibraryBaseUrl/search.json?q=fiction&subject=fantasy',
+        'Recommended',
+      );
+
+      setState(() {
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Gagal memuat data buku: $e';
+      });
+      print('Error fetching book data: $e');
+    }
+  }
+
+  Future<List<Map<String, String>>> _fetchBooksFromOpenLibrary(
+    String url,
+    String categoryName,
+  ) async {
+    final response = await http.get(Uri.parse(url));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      List<Map<String, String>> books = [];
+
+      // Handle different API response structures
+      List<dynamic> docs;
+      if (data.containsKey('works')) {
+        // For /trending/now which can sometimes return 'works'
+        docs = data['works'];
+      } else if (data.containsKey('docs')) {
+        // For /search.json
+        docs = data['docs'];
+      } else if (data.containsKey('entries')) {
+        // For /subjects/{subject}.json (though search is more general)
+        docs = data['entries'];
+      } else {
+        return []; // Unknown format
+      }
+
+      for (var doc in docs) {
+        // PERBAIKAN UTAMA DI SINI: PASTIKAN SEMUA NILAI NON-NULL UNTUK MAP<STRING, STRING>
+        String title = doc['title']?.toString() ?? 'Judul Tidak Diketahui';
+        String author =
+            (doc['author_name'] != null && doc['author_name'].isNotEmpty)
+                ? doc['author_name'][0].toString()
+                : 'Penulis Tidak Diketahui';
+
+        // OLID perlu diperhatikan, pastikan tidak null sebelum digunakan untuk fetch description
+        String? olidRaw = doc['key']?.toString();
+        String? olid;
+        if (olidRaw != null) {
+          olid = olidRaw.replaceAll(
+            '/works/',
+            '',
+          ); // Get OLID for works, remove prefix
+        }
+
+        String? coverId = doc['cover_i']?.toString();
+        String bookUrl =
+            '$_openLibraryBaseUrl${doc['key'] ?? ''}'; // Pastikan URL selalu string, tambahkan '' jika null
+
+        // Hanya proses jika OLID valid dan tersedia untuk deskripsi
+        String description = 'Deskripsi Tidak Tersedia'; // Default value
+        if (olid != null && olid.isNotEmpty) {
+          try {
+            description = await _fetchBookDescription(olid);
+          } catch (e) {
+            print('Error fetching description for $olid: $e');
+            description = 'Gagal memuat deskripsi.';
+          }
+        }
+
+        String imageUrl = _getCoverImageUrl(coverId);
+
+        books.add({
+          'title': title, // Sudah dijamin non-null
+          'author': author, // Sudah dijamin non-null
+          'description': description, // Sudah dijamin non-null
+          'imageUrl': imageUrl, // Sudah dijamin non-null
+          'openLibraryUrl': bookUrl, // Sudah dijamin non-null
+          'olid':
+              olid ??
+              '', // Pastikan olid selalu string, jika null jadi string kosong
+        });
+
+        if (books.length >= 10) {
+          break; // Limit to 10 books per category for display
+        }
+      }
+      return books;
+    } else {
+      throw Exception(
+        'Gagal memuat buku $categoryName: ${response.statusCode}',
       );
     }
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: novels.length,
-      itemBuilder: (context, index) {
-        final novel = novels[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 16),
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.all(16),
-            leading: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                novel['image']!,
-                width: 60,
-                height: 80,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    width: 60,
-                    height: 80,
-                    color: Colors.grey[200],
-                    child: const Icon(Icons.book, size: 30, color: Colors.grey),
-                  );
-                },
-              ),
-            ),
-            title: Text(
-              novel['title']!,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(novel['author']!),
-                const SizedBox(height: 4),
-                Text(
-                  novel['description']!,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-            trailing: Consumer<FavoriteModel>(
-              builder: (context, favoriteModel, child) {
-                final bool isFav = favoriteModel.isFavorite(novel);
-                return IconButton(
-                  icon: Icon(
-                    isFav ? Icons.favorite : Icons.favorite_border,
-                    color: isFav ? Colors.red : Colors.grey,
-                  ),
-                  onPressed: () {
-                    favoriteModel.toggleFavorite(novel);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          isFav
-                              ? '${novel['title']} dihapus dari favorit!'
-                              : '${novel['title']} ditambahkan ke favorit!',
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
+  }
+
+  Future<String> _fetchBookDescription(String olid) async {
+    final response = await http.get(
+      Uri.parse('$_openLibraryBaseUrl/works/$olid.json'),
+    );
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data.containsKey('description')) {
+        final dynamic desc = data['description'];
+        if (desc is String) {
+          return desc;
+        } else if (desc is Map && desc.containsKey('value')) {
+          return desc['value']?.toString() ??
+              ''; // Pastikan toString() dan fallback ke ''
+        }
+      }
+    }
+    return 'Deskripsi tidak tersedia.'; // Return default string if no description found or fetch fails
+  }
+
+  String _getCoverImageUrl(String? coverId) {
+    if (coverId != null && coverId.isNotEmpty) {
+      return '$_coversBaseUrl/id/$coverId-M.jpg'; // Medium size cover
+    }
+    return 'https://via.placeholder.com/150x200?text=No+Cover'; // Placeholder image
+  }
+
+  Widget _buildBookList(List<Map<String, String>> books) {
+    if (books.isEmpty) {
+      return const Center(
+        child: Text('Tidak ada buku yang tersedia di kategori ini.'),
+      );
+    }
+    return SizedBox(
+      height: 250, // Adjust height as needed
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: books.length,
+        itemBuilder: (context, index) {
+          final book = books[index];
+          return GestureDetector(
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder:
-                      (_) => DetailPage(
-                        title: novel['title']!,
-                        author: novel['author']!,
-                        description: novel['description']!,
-                        imageurl: novel['image']!,
+                      (context) => DetailPage(
+                        // PERBAIKAN UTAMA DI SINI: PENAMAAN PARAMETER DAN PENGHAPUSAN '!'
+                        title:
+                            book['title']!, // title dan author harusnya sudah aman non-null dari Map
+                        author: book['author']!,
+                        description:
+                            book['description'], // TIDAK PAKAI '!' karena di DetailPage sudah String?
+                        imageUrl:
+                            book['imageUrl'], // TIDAK PAKAI '!' dan perbaiki 'imageurl' jadi 'imageUrl'
+                        olid: book['olid'], // Cukup begini
+                        openLibraryUrl:
+                            book['openLibraryUrl'], // TIDAK PAKAI '!'
                       ),
                 ),
               );
             },
-          ),
-        );
-      },
+            child: Container(
+              width: 150, // Adjust width as needed
+              margin: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8.0),
+                    child: Image.network(
+                      // PERBAIKAN DI SINI JUGA: PENAMAAN PARAMETER DAN FALLBACK
+                      book['imageUrl']!, // Ini seharusnya sudah non-null dari Map
+                      height: 180,
+                      width: 150,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          height: 180,
+                          width: 150,
+                          color: Colors.grey[200],
+                          child: Icon(
+                            Icons.book,
+                            size: 50,
+                            color: Colors.grey[400],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 8.0),
+                  Text(
+                    book['title']!, // Seharusnya aman non-null dari Map
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    book['author']!, // Seharusnya aman non-null dari Map
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Open Library Books📚')),
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _errorMessage.isNotEmpty
+              ? Center(child: Text(_errorMessage))
+              : SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Novel Populer',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      _buildBookList(_popularNovels),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'Novel Terbaru',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      _buildBookList(_latestNovels),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'Novel Rekomendasi',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      _buildBookList(_recommendedNovels),
+                    ],
+                  ),
+                ),
+              ),
     );
   }
 }
