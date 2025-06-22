@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/bookshelf_model.dart';
-import '../models/favorite_model.dart'; // Penting: Pastikan ini diimport
+import '../models/favorite_model.dart';
 import 'detail_page.dart';
 
 class BookshelfPage extends StatelessWidget {
@@ -39,14 +39,11 @@ class BookshelfPage extends StatelessWidget {
                 final Map<String, dynamic> book =
                     bookshelfModel.bookshelf[index];
 
-                // Akses nilai dengan aman dan teruskan ke DetailPage
-                // Karena DetailPage sudah menerima String?, kita bisa langsung meneruskannya.
                 final String title =
                     book['title']?.toString() ?? 'Judul Tidak Diketahui';
                 final String author =
                     book['author']?.toString() ?? 'Penulis Tidak Diketahui';
-                // description, imageUrl, olid, openLibraryUrl bisa null, jadi tidak perlu default value di sini
-                // Cukup biarkan null jika memang null dari data `book`.
+
                 final String? description = book['description']?.toString();
                 final String? imageUrl = book['imageUrl']?.toString();
                 final String? olid = book['olid']?.toString();
@@ -68,14 +65,10 @@ class BookshelfPage extends StatelessWidget {
                               (context) => DetailPage(
                                 title: title,
                                 author: author,
-                                description:
-                                    description, // Meneruskan null jika description memang null
-                                imageUrl:
-                                    imageUrl, // Meneruskan null jika imageUrl memang null
-                                olid:
-                                    olid, // Meneruskan null jika olid memang null
-                                openLibraryUrl:
-                                    openLibraryUrl, // Meneruskan null jika openLibraryUrl memang null
+                                description: description,
+                                imageUrl: imageUrl,
+                                olid: olid,
+                                openLibraryUrl: openLibraryUrl,
                               ),
                         ),
                       );
@@ -190,18 +183,15 @@ class BookshelfPage extends StatelessWidget {
                                     return Row(
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
-                                        // Tombol Bookmark (Rak Buku) - Hanya untuk menghapus
                                         IconButton(
                                           icon: Icon(
-                                            Icons
-                                                .bookmark, // Selalu bookmark terisi karena sudah di rak buku
+                                            Icons.bookmark,
                                             color:
                                                 Theme.of(
                                                   context,
                                                 ).colorScheme.primary,
                                           ),
                                           onPressed: () {
-                                            // Langsung hapus karena tombol ini hanya muncul jika buku ada di rak
                                             bookshelfModel.removeBook(book);
                                             ScaffoldMessenger.of(
                                               context,

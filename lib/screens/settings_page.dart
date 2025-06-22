@@ -1,4 +1,3 @@
-// lib/screens/settings_page.dart (Contoh)
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:novel_app/main.dart';
-import 'package:novel_app/screens/main_navigation_page.dart';
+import 'package:library_book/main.dart';
+import 'package:library_book/screens/main_navigation_page.dart';
 
 void main() {
   setUp(() {});

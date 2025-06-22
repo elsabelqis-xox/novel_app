@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/favorite_model.dart';
-import '../models/bookshelf_model.dart'; // Pastikan ini diimport
+import '../models/bookshelf_model.dart';
 import 'detail_page.dart';
 
 class FavoritePage extends StatelessWidget {
@@ -26,10 +26,7 @@ class FavoritePage extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,
-                    color:
-                        Theme.of(context)
-                            .colorScheme
-                            .onSurfaceVariant, // Warna teks lebih adaptif tema
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ),
@@ -56,12 +53,8 @@ class FavoritePage extends StatelessWidget {
                                 title: book['title'] ?? 'Judul Tidak Diketahui',
                                 author:
                                     book['author'] ?? 'Penulis Tidak Diketahui',
-                                description:
-                                    book['description']
-                                        as String?, // Cast ke String?
-                                imageUrl:
-                                    book['imageUrl']
-                                        as String?, // Cast ke String?
+                                description: book['description'] as String?,
+                                imageUrl: book['imageUrl'] as String?,
                                 olid: book['olid'] as String?,
                                 openLibraryUrl:
                                     book['openLibraryUrl'] as String?,
@@ -77,8 +70,7 @@ class FavoritePage extends StatelessWidget {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: Image.network(
-                              book['imageUrl']
-                                      as String? ?? // Gunakan as String? dan ??
+                              book['imageUrl'] as String? ??
                                   'https://via.placeholder.com/70x100?text=No+Image',
                               height: 100,
                               width: 70,
@@ -93,9 +85,9 @@ class FavoritePage extends StatelessWidget {
                                   height: 100,
                                   width: 70,
                                   color:
-                                      Theme.of(context)
-                                          .colorScheme
-                                          .surfaceVariant, // Warna loading adaptif tema
+                                      Theme.of(
+                                        context,
+                                      ).colorScheme.surfaceVariant,
                                   child: Center(
                                     child: CircularProgressIndicator(
                                       value:
@@ -119,16 +111,16 @@ class FavoritePage extends StatelessWidget {
                                   height: 100,
                                   width: 70,
                                   color:
-                                      Theme.of(context)
-                                          .colorScheme
-                                          .surfaceVariant, // Warna error image adaptif tema
+                                      Theme.of(
+                                        context,
+                                      ).colorScheme.surfaceVariant,
                                   child: Icon(
                                     Icons.book,
                                     size: 50,
                                     color:
-                                        Theme.of(context)
-                                            .colorScheme
-                                            .onSurfaceVariant, // Warna ikon adaptif tema
+                                        Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
                                   ),
                                 );
                               },
@@ -157,9 +149,9 @@ class FavoritePage extends StatelessWidget {
                                     fontSize: 14,
                                     fontStyle: FontStyle.italic,
                                     color:
-                                        Theme.of(context)
-                                            .colorScheme
-                                            .onSurfaceVariant, // Warna teks penulis
+                                        Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -180,7 +172,6 @@ class FavoritePage extends StatelessWidget {
                                     return Row(
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
-                                        // Tombol Bookmark (Rak Buku)
                                         IconButton(
                                           icon: Icon(
                                             isInBookshelf
@@ -188,12 +179,12 @@ class FavoritePage extends StatelessWidget {
                                                 : Icons.bookmark_border,
                                             color:
                                                 isInBookshelf
-                                                    ? Theme.of(context)
-                                                        .colorScheme
-                                                        .primary // Warna primary dari tema
+                                                    ? Theme.of(
+                                                      context,
+                                                    ).colorScheme.primary
                                                     : Theme.of(context)
                                                         .colorScheme
-                                                        .onSurfaceVariant, // Warna abu-abu adaptif tema
+                                                        .onSurfaceVariant,
                                           ),
                                           onPressed: () {
                                             final String message;
@@ -205,9 +196,7 @@ class FavoritePage extends StatelessWidget {
                                               bookshelfModel.removeBook(book);
                                               message =
                                                   '${book['title'] ?? 'Buku'} dihapus dari Rak Buku.';
-                                              iconData =
-                                                  Icons
-                                                      .bookmark_remove; // <-- GANTI ICON DI SINI
+                                              iconData = Icons.bookmark_remove;
                                               iconColor =
                                                   Theme.of(
                                                     context,
@@ -220,9 +209,7 @@ class FavoritePage extends StatelessWidget {
                                               bookshelfModel.addBook(book);
                                               message =
                                                   '${book['title'] ?? 'Buku'} disimpan ke Rak Buku.';
-                                              iconData =
-                                                  Icons
-                                                      .bookmark_add; // <-- GANTI ICON DI SINI
+                                              iconData = Icons.bookmark_add;
                                               iconColor =
                                                   Theme.of(
                                                     context,
@@ -273,7 +260,7 @@ class FavoritePage extends StatelessWidget {
                                                     ? Colors.red
                                                     : Theme.of(context)
                                                         .colorScheme
-                                                        .onSurfaceVariant, // Warna abu-abu adaptif tema
+                                                        .onSurfaceVariant,
                                           ),
                                           onPressed: () {
                                             favoriteModel.toggleFavorite(book);

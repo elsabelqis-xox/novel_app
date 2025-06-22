@@ -25,19 +25,12 @@ class _HomeContentPageState extends State<HomeContentPage> {
     _fetchBookData();
   }
 
-  // --- Ini yang perlu ditambahkan: Fungsi dispose() ---
   @override
   void dispose() {
-    // Jika kamu punya timer atau listener yang terus berjalan,
-    // di sinilah tempat untuk membatalkannya.
-    // Saat ini, _fetchBookData() adalah Future, jadi tidak perlu pembatalan eksplisit
-    // kecuali kamu menggunakan CancelableOperation package.
     super.dispose();
   }
-  // --- Akhir dari penambahan ---
 
   Future<void> _fetchBookData() async {
-    // PENTING: Periksa `mounted` sebelum memanggil setState() pertama kali di sini
     if (!mounted) return;
     setState(() {
       _isLoading = true;
@@ -49,14 +42,12 @@ class _HomeContentPageState extends State<HomeContentPage> {
       _latestNovels = await BookService.searchBooks('novel');
       _recommendedNovels = await BookService.searchBooks('fiction fantasy');
 
-      // PENTING: Periksa `mounted` sebelum memanggil setState() setelah Future selesai
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
       }
     } catch (e) {
-      // PENTING: Periksa `mounted` sebelum memanggil setState() di blok catch
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -218,13 +209,13 @@ class _HomeContentPageState extends State<HomeContentPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildSectionHeader('Novel Populer'),
+                      _buildSectionHeader('Buku Populer'),
                       _buildBookList(_popularNovels),
                       const SizedBox(height: 24),
-                      _buildSectionHeader('Novel Terbaru'),
+                      _buildSectionHeader('Buku Terbaru'),
                       _buildBookList(_latestNovels),
                       const SizedBox(height: 24),
-                      _buildSectionHeader('Novel Rekomendasi'),
+                      _buildSectionHeader('Rekomendasi Buku'),
                       _buildBookList(_recommendedNovels),
                       const SizedBox(height: 16),
                     ],

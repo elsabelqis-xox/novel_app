@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/book_service.dart';
-import '../models/bookshelf_model.dart'; // Diperlukan untuk BookCard
-import '../models/favorite_model.dart'; // Diperlukan untuk BookCard
-import '../widgets/book_card.dart'; // Import BookCard yang sudah dipindahkan
+import '../models/bookshelf_model.dart';
+import '../models/favorite_model.dart';
+import '../widgets/book_card.dart';
 
 class BookSearchDelegate extends SearchDelegate<String> {
-  // Riwayat pencarian (opsional, bisa disimpan di SharedPreferences)
   final List<String> _history = [
     'Flutter',
     'Programming',
@@ -14,21 +13,19 @@ class BookSearchDelegate extends SearchDelegate<String> {
     'Fantasy',
   ];
 
-  // Metode ini dipanggil untuk membangun tindakan di AppBar pencarian (misal: tombol hapus)
   @override
   List<Widget>? buildActions(BuildContext context) {
     return [
       IconButton(
         icon: const Icon(Icons.clear),
         onPressed: () {
-          query = ''; // Hapus teks pencarian
-          showSuggestions(context); // Tampilkan saran lagi
+          query = '';
+          showSuggestions(context);
         },
       ),
     ];
   }
 
-  // Metode ini dipanggil untuk membangun tombol kembali di AppBar pencarian
   @override
   Widget? buildLeading(BuildContext context) {
     return IconButton(
@@ -37,12 +34,11 @@ class BookSearchDelegate extends SearchDelegate<String> {
         progress: transitionAnimation,
       ),
       onPressed: () {
-        close(context, ''); // Tutup halaman pencarian
+        close(context, '');
       },
     );
   }
 
-  // Metode ini dipanggil ketika pengguna menekan tombol 'search' di keyboard
   @override
   Widget buildResults(BuildContext context) {
     if (query.trim().isEmpty) {
@@ -68,13 +64,7 @@ class BookSearchDelegate extends SearchDelegate<String> {
                   const SizedBox(height: 10),
                   ElevatedButton(
                     onPressed: () {
-                      // Ini sedikit rumit karena kita tidak punya State untuk panggil setState
-                      // Solusi terbaik adalah menutup dan membuka kembali pencarian, atau
-                      // membiarkan pengguna mengetik ulang. Untuk demo, ini sederhana:
-                      // Kamu bisa menambahkan logika retry yang lebih canggih jika diperlukan.
-                      buildResults(
-                        context,
-                      ); // Meminta buildResults untuk dibangun ulang (tidak ideal untuk retry API)
+                      buildResults(context);
                     },
                     child: const Text('Coba Lagi'),
                   ),
@@ -91,7 +81,7 @@ class BookSearchDelegate extends SearchDelegate<String> {
             itemCount: books.length,
             itemBuilder: (context, index) {
               final book = books[index];
-              return BookCard(book: book); // Gunakan BookCard yang diimpor
+              return BookCard(book: book);
             },
           );
         }
@@ -99,52 +89,44 @@ class BookSearchDelegate extends SearchDelegate<String> {
     );
   }
 
-  // Metode ini dipanggil untuk membangun saran saat pengguna mengetik
   @override
   Widget buildSuggestions(BuildContext context) {
     final List<String> suggestionList =
         query.isEmpty
-            ? _history // Tampilkan riwayat jika query kosong
+            ? _history
             : _history
                 .where(
                   (element) =>
                       element.toLowerCase().contains(query.toLowerCase()),
                 )
                 .toList();
-    // Atau kamu bisa memanggil API untuk saran real-time jika diperlukan
 
     return ListView.builder(
       itemCount: suggestionList.length,
       itemBuilder: (context, index) {
         final String suggestion = suggestionList[index];
         return ListTile(
-          leading: const Icon(Icons.history), // Atau Icon(Icons.search)
+          leading: const Icon(Icons.history),
           title: RichText(
             text: TextSpan(
               text: suggestion.substring(0, query.length),
               style: TextStyle(
-                color:
-                    Theme.of(
-                      context,
-                    ).colorScheme.primary, // Sesuaikan warna dengan tema
+                color: Theme.of(context).colorScheme.primary,
                 fontWeight: FontWeight.bold,
               ),
               children: [
                 TextSpan(
                   text: suggestion.substring(query.length),
                   style: TextStyle(
-                    color:
-                        Theme.of(
-                          context,
-                        ).colorScheme.onSurface, // Sesuaikan warna dengan tema
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ],
             ),
           ),
           onTap: () {
-            query = suggestion; // Set teks pencarian ke saran yang dipilih
-            showResults(context); // Tampilkan hasil pencarian
+            query = suggestion;
+            showResults(context);
           },
         );
       },

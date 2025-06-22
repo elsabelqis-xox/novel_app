@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:novel_app/screens/main_navigation_page.dart';
+import 'package:library_book/screens/main_navigation_page.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -52,11 +52,9 @@ class _SplashScreenState extends State<SplashScreen> {
                     style: TextStyle(fontSize: 18, color: Colors.grey),
                   ),
                   const SizedBox(height: 5),
-                  // Menggunakan Row untuk menempatkan Icon dan Text dalam satu baris
+
                   Row(
-                    mainAxisSize:
-                        MainAxisSize
-                            .min, // Agar Row menyesuaikan ukuran kontennya
+                    mainAxisSize: MainAxisSize.min,
                     children: const [
                       Text(
                         'Elsa',
@@ -66,14 +64,8 @@ class _SplashScreenState extends State<SplashScreen> {
                           color: Colors.blue,
                         ),
                       ),
-                      SizedBox(
-                        width: 5,
-                      ), // Memberi sedikit jarak antara teks dan ikon
-                      Icon(
-                        Icons.all_inclusive,
-                        color: Colors.blue,
-                        size: 30, // Sesuaikan ukuran ikon jika perlu
-                      ),
+                      SizedBox(width: 5),
+                      Icon(Icons.all_inclusive, color: Colors.blue, size: 30),
                     ],
                   ),
                 ],

@@ -1,4 +1,3 @@
-// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,23 +6,18 @@ import 'models/bookshelf_model.dart';
 import 'models/favorite_model.dart';
 import 'providers/theme_provider.dart';
 
-// Import halaman-halaman utama
 import 'screens/splash_screen.dart';
-import 'screens/home_content_page.dart'; // Pastikan ini yang diimport sebagai beranda utama
-// import 'screens/homepage.dart'; // Hapus ini jika HomeContentPage adalah yang utama
-// import 'screens/search_page.dart'; // Hapus ini karena SearchPage sudah jadi SearchDelegate
+import 'screens/home_content_page.dart';
 import 'screens/bookshelf_page.dart';
 import 'screens/favorite_page.dart';
 import 'screens/settings_page.dart';
-// import 'screens/main_navigation_page.dart'; // Hapus ini jika MainScreen di sini adalah navigasi utama
 
-// Definisi Warna Kustom (tetap sama)
 const Color _lightPrimaryColor = Color.fromARGB(255, 141, 195, 248);
 const Color _lightScaffoldBackgroundColor = Color.fromARGB(255, 230, 240, 255);
 const Color _darkPrimaryColor = Color(0xFF303030);
 const Color _darkBackgroundColor = Color.fromARGB(255, 43, 43, 43);
 
-// --- Light Theme --- (tetap sama)
+// --- Light Theme ---
 final ThemeData lightTheme = ThemeData(
   useMaterial3: true,
   scaffoldBackgroundColor: _lightScaffoldBackgroundColor,
@@ -80,7 +74,7 @@ final ThemeData lightTheme = ThemeData(
   textTheme: GoogleFonts.poppinsTextTheme(ThemeData.light().textTheme),
 );
 
-// --- Dark Theme --- (tetap sama)
+// --- Dark Theme ---
 final ThemeData darkTheme = ThemeData(
   useMaterial3: true,
   brightness: Brightness.dark,
@@ -169,7 +163,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// Ini akan menjadi halaman utama yang berisi Bottom Navigation Bar
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -180,12 +173,11 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  // Halaman-halaman yang akan ditampilkan di Bottom Navigation Bar
   final List<Widget> _pages = const [
-    HomeContentPage(), // PASTIKAN INI ADALAH HomeContentPage()
-    BookshelfPage(), // Rak Buku
-    FavoritePage(), // Favorit
-    SettingsPage(), // Pengaturan
+    HomeContentPage(),
+    BookshelfPage(),
+    FavoritePage(),
+    SettingsPage(),
   ];
 
   void _onItemTapped(int index) {
@@ -201,9 +193,9 @@ class _MainScreenState extends State<MainScreen> {
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
-          // BottomNavigationBarItem untuk 'Cari' dihapus
+
           BottomNavigationBarItem(
-            icon: Icon(Icons.menu_book), // Menggunakan ikon buku untuk rak buku
+            icon: Icon(Icons.menu_book),
             label: 'Rak Buku',
           ),
           BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Favorit'),

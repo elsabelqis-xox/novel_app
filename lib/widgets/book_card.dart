@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/bookshelf_model.dart';
 import '../models/favorite_model.dart';
-import '../screens/detail_page.dart'; // Pastikan path ini benar
+import '../screens/detail_page.dart';
 
 class BookCard extends StatelessWidget {
   final Map<String, dynamic> book;
