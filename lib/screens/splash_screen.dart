@@ -40,26 +40,41 @@ class _SplashScreenState extends State<SplashScreen> {
               fit: BoxFit.contain,
             ),
           ),
-
           Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
               padding: const EdgeInsets.only(bottom: 50),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: const [
-                  Text(
+                children: [
+                  const Text(
                     'from',
                     style: TextStyle(fontSize: 18, color: Colors.grey),
                   ),
-                  SizedBox(height: 5),
-                  Text(
-                    'Elsa 😊',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue,
-                    ),
+                  const SizedBox(height: 5),
+                  // Menggunakan Row untuk menempatkan Icon dan Text dalam satu baris
+                  Row(
+                    mainAxisSize:
+                        MainAxisSize
+                            .min, // Agar Row menyesuaikan ukuran kontennya
+                    children: const [
+                      Text(
+                        'Elsa',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                        ),
+                      ),
+                      SizedBox(
+                        width: 5,
+                      ), // Memberi sedikit jarak antara teks dan ikon
+                      Icon(
+                        Icons.all_inclusive,
+                        color: Colors.blue,
+                        size: 30, // Sesuaikan ukuran ikon jika perlu
+                      ),
+                    ],
                   ),
                 ],
               ),

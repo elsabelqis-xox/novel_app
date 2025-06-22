@@ -1,3 +1,4 @@
+// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -8,67 +9,42 @@ import 'providers/theme_provider.dart';
 
 // Import halaman-halaman utama
 import 'screens/splash_screen.dart';
-import 'screens/homepage.dart';
-import 'screens/search_page.dart';
+import 'screens/home_content_page.dart'; // Pastikan ini yang diimport sebagai beranda utama
+// import 'screens/homepage.dart'; // Hapus ini jika HomeContentPage adalah yang utama
+// import 'screens/search_page.dart'; // Hapus ini karena SearchPage sudah jadi SearchDelegate
 import 'screens/bookshelf_page.dart';
 import 'screens/favorite_page.dart';
 import 'screens/settings_page.dart';
+// import 'screens/main_navigation_page.dart'; // Hapus ini jika MainScreen di sini adalah navigasi utama
 
-const Color _appBarAndNavBarColorLight = Color.fromARGB(255, 141, 195, 248);
-const Color _appBarAndNavBarColorDark = Color(0xFF212121);
+// Definisi Warna Kustom (tetap sama)
+const Color _lightPrimaryColor = Color.fromARGB(255, 141, 195, 248);
+const Color _lightScaffoldBackgroundColor = Color.fromARGB(255, 230, 240, 255);
+const Color _darkPrimaryColor = Color(0xFF303030);
+const Color _darkBackgroundColor = Color.fromARGB(255, 43, 43, 43);
 
+// --- Light Theme --- (tetap sama)
 final ThemeData lightTheme = ThemeData(
   useMaterial3: true,
+  scaffoldBackgroundColor: _lightScaffoldBackgroundColor,
   colorScheme: ColorScheme.fromSeed(
-    seedColor: _appBarAndNavBarColorLight,
-    primary: _appBarAndNavBarColorLight,
+    seedColor: _lightPrimaryColor,
+    primary: _lightPrimaryColor,
     onPrimary: Colors.black,
-    background: Colors.white,
+    primaryContainer: const Color.fromARGB(255, 200, 220, 255),
+    onPrimaryContainer: Colors.black,
+    secondary: const Color.fromARGB(255, 255, 193, 7),
+    onSecondary: Colors.black,
+    background: _lightScaffoldBackgroundColor,
+    onBackground: Colors.black,
     surface: Colors.white,
+    onSurface: Colors.black,
+    error: Colors.red,
+    onError: Colors.white,
+    brightness: Brightness.light,
   ),
-  appBarTheme: const AppBarTheme(
-    backgroundColor: _appBarAndNavBarColorLight,
-    foregroundColor: Colors.black,
-    elevation: 4,
-    centerTitle: true,
-    titleTextStyle: TextStyle(
-      color: Color.fromARGB(255, 255, 255, 255),
-      fontSize: 20,
-      fontWeight: FontWeight.bold,
-    ),
-  ),
-  bottomNavigationBarTheme: BottomNavigationBarThemeData(
-    backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-    selectedItemColor: const Color.fromARGB(255, 0, 0, 0),
-    unselectedItemColor: const Color.fromARGB(255, 255, 255, 255),
-    selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
-    unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
-    type: BottomNavigationBarType.fixed,
-  ),
-  elevatedButtonTheme: ElevatedButtonThemeData(
-    style: ElevatedButton.styleFrom(
-      backgroundColor: _appBarAndNavBarColorLight,
-      foregroundColor: Colors.black,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-    ),
-  ),
-  textTheme: GoogleFonts.poppinsTextTheme(ThemeData.light().textTheme),
-);
-
-// --- Dark Theme ---
-final ThemeData darkTheme = ThemeData(
-  useMaterial3: true,
-  brightness: Brightness.dark,
-  colorScheme: ColorScheme.fromSeed(
-    seedColor: _appBarAndNavBarColorDark,
-    primary: _appBarAndNavBarColorDark,
-    onPrimary: Colors.white,
-    background: const Color.fromARGB(255, 54, 54, 54),
-    surface: Colors.grey[850],
-    brightness: Brightness.dark,
-  ),
-  appBarTheme: const AppBarTheme(
-    backgroundColor: Color.fromARGB(255, 43, 43, 43),
+  appBarTheme: AppBarTheme(
+    backgroundColor: _lightPrimaryColor,
     foregroundColor: Colors.white,
     elevation: 4,
     centerTitle: true,
@@ -76,11 +52,70 @@ final ThemeData darkTheme = ThemeData(
       color: Colors.white,
       fontSize: 20,
       fontWeight: FontWeight.bold,
+      fontFamily: GoogleFonts.poppins().fontFamily,
     ),
   ),
   bottomNavigationBarTheme: BottomNavigationBarThemeData(
-    backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-    selectedItemColor: const Color.fromARGB(255, 97, 97, 97),
+    backgroundColor: Colors.white,
+    selectedItemColor: _lightPrimaryColor,
+    unselectedItemColor: Colors.grey[600],
+    selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
+    unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
+    type: BottomNavigationBarType.fixed,
+  ),
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ElevatedButton.styleFrom(
+      backgroundColor: _lightPrimaryColor,
+      foregroundColor: Colors.black,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    ),
+  ),
+  snackBarTheme: SnackBarThemeData(
+    backgroundColor: _lightPrimaryColor,
+    contentTextStyle: const TextStyle(color: Colors.black),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    behavior: SnackBarBehavior.floating,
+    actionTextColor: Colors.black,
+  ),
+  textTheme: GoogleFonts.poppinsTextTheme(ThemeData.light().textTheme),
+);
+
+// --- Dark Theme --- (tetap sama)
+final ThemeData darkTheme = ThemeData(
+  useMaterial3: true,
+  brightness: Brightness.dark,
+  scaffoldBackgroundColor: _darkBackgroundColor,
+  colorScheme: ColorScheme.fromSeed(
+    seedColor: _darkPrimaryColor,
+    primary: _darkPrimaryColor,
+    onPrimary: Colors.white,
+    primaryContainer: const Color(0xFF424242),
+    onPrimaryContainer: Colors.white,
+    secondary: Colors.tealAccent[400],
+    onSecondary: Colors.black,
+    background: _darkBackgroundColor,
+    onBackground: Colors.white,
+    surface: const Color(0xFF212121),
+    onSurface: Colors.white,
+    error: Colors.redAccent,
+    onError: Colors.black,
+    brightness: Brightness.dark,
+  ),
+  appBarTheme: AppBarTheme(
+    backgroundColor: _darkBackgroundColor,
+    foregroundColor: Colors.white,
+    elevation: 4,
+    centerTitle: true,
+    titleTextStyle: TextStyle(
+      color: Colors.white,
+      fontSize: 20,
+      fontWeight: FontWeight.bold,
+      fontFamily: GoogleFonts.poppins().fontFamily,
+    ),
+  ),
+  bottomNavigationBarTheme: BottomNavigationBarThemeData(
+    backgroundColor: Colors.black,
+    selectedItemColor: Colors.white,
     unselectedItemColor: Colors.grey[400],
     selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
     unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
@@ -92,6 +127,13 @@ final ThemeData darkTheme = ThemeData(
       foregroundColor: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
     ),
+  ),
+  snackBarTheme: SnackBarThemeData(
+    backgroundColor: Colors.grey[800],
+    contentTextStyle: const TextStyle(color: Colors.white),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    behavior: SnackBarBehavior.floating,
+    actionTextColor: Colors.white,
   ),
   textTheme: GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme),
 );
@@ -127,6 +169,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// Ini akan menjadi halaman utama yang berisi Bottom Navigation Bar
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -137,11 +180,12 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  final List<Widget> _pages = [
-    const HomePage(),
-    const SearchPage(),
-    const BookshelfPage(),
-    const FavoritePage(),
+  // Halaman-halaman yang akan ditampilkan di Bottom Navigation Bar
+  final List<Widget> _pages = const [
+    HomeContentPage(), // PASTIKAN INI ADALAH HomeContentPage()
+    BookshelfPage(), // Rak Buku
+    FavoritePage(), // Favorit
+    SettingsPage(), // Pengaturan
   ];
 
   void _onItemTapped(int index) {
@@ -157,12 +201,16 @@ class _MainScreenState extends State<MainScreen> {
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Cari'),
+          // BottomNavigationBarItem untuk 'Cari' dihapus
           BottomNavigationBarItem(
-            icon: Icon(Icons.menu_book),
+            icon: Icon(Icons.menu_book), // Menggunakan ikon buku untuk rak buku
             label: 'Rak Buku',
           ),
           BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Favorit'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Pengaturan',
+          ),
         ],
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,

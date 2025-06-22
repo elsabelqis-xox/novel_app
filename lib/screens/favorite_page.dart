@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/favorite_model.dart';
-import '../models/bookshelf_model.dart';
+import '../models/bookshelf_model.dart'; // Pastikan ini diimport
 import 'detail_page.dart';
 
 class FavoritePage extends StatelessWidget {
@@ -18,13 +18,19 @@ class FavoritePage extends StatelessWidget {
       body: Consumer<FavoriteModel>(
         builder: (context, favoriteModel, child) {
           if (favoriteModel.favoriteNovels.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(24.0),
+                padding: const EdgeInsets.all(24.0),
                 child: Text(
                   'Belum ada buku favorit. Tambahkan favorit dari halaman Beranda atau Cari!',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color:
+                        Theme.of(context)
+                            .colorScheme
+                            .onSurfaceVariant, // Warna teks lebih adaptif tema
+                  ),
                 ),
               ),
             );
@@ -50,11 +56,15 @@ class FavoritePage extends StatelessWidget {
                                 title: book['title'] ?? 'Judul Tidak Diketahui',
                                 author:
                                     book['author'] ?? 'Penulis Tidak Diketahui',
-
-                                description: book['description'],
-                                imageUrl: book['imageUrl'],
-                                olid: book['olid'],
-                                openLibraryUrl: book['openLibraryUrl'],
+                                description:
+                                    book['description']
+                                        as String?, // Cast ke String?
+                                imageUrl:
+                                    book['imageUrl']
+                                        as String?, // Cast ke String?
+                                olid: book['olid'] as String?,
+                                openLibraryUrl:
+                                    book['openLibraryUrl'] as String?,
                               ),
                         ),
                       );
@@ -67,12 +77,12 @@ class FavoritePage extends StatelessWidget {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: Image.network(
-                              book['imageUrl'] ??
+                              book['imageUrl']
+                                      as String? ?? // Gunakan as String? dan ??
                                   'https://via.placeholder.com/70x100?text=No+Image',
                               height: 100,
                               width: 70,
                               fit: BoxFit.cover,
-
                               loadingBuilder: (
                                 context,
                                 child,
@@ -82,7 +92,10 @@ class FavoritePage extends StatelessWidget {
                                 return Container(
                                   height: 100,
                                   width: 70,
-                                  color: Colors.grey[200],
+                                  color:
+                                      Theme.of(context)
+                                          .colorScheme
+                                          .surfaceVariant, // Warna loading adaptif tema
                                   child: Center(
                                     child: CircularProgressIndicator(
                                       value:
@@ -101,16 +114,21 @@ class FavoritePage extends StatelessWidget {
                                   ),
                                 );
                               },
-
                               errorBuilder: (context, error, stackTrace) {
                                 return Container(
                                   height: 100,
                                   width: 70,
-                                  color: Colors.grey[200],
+                                  color:
+                                      Theme.of(context)
+                                          .colorScheme
+                                          .surfaceVariant, // Warna error image adaptif tema
                                   child: Icon(
                                     Icons.book,
                                     size: 50,
-                                    color: Colors.grey[400],
+                                    color:
+                                        Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant, // Warna ikon adaptif tema
                                   ),
                                 );
                               },
@@ -123,9 +141,11 @@ class FavoritePage extends StatelessWidget {
                               children: [
                                 Text(
                                   book['title'] ?? 'Judul Tidak Diketahui',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
                                   ),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
@@ -133,18 +153,18 @@ class FavoritePage extends StatelessWidget {
                                 const SizedBox(height: 4),
                                 Text(
                                   book['author'] ?? 'Penulis Tidak Diketahui',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 14,
                                     fontStyle: FontStyle.italic,
                                     color:
-                                        Colors
-                                            .grey, // Warna teks penulis lebih soft
+                                        Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant, // Warna teks penulis
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 const SizedBox(height: 8),
-
                                 Consumer2<BookshelfModel, FavoriteModel>(
                                   builder: (
                                     context,
@@ -160,6 +180,7 @@ class FavoritePage extends StatelessWidget {
                                     return Row(
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
+                                        // Tombol Bookmark (Rak Buku)
                                         IconButton(
                                           icon: Icon(
                                             isInBookshelf
@@ -167,37 +188,81 @@ class FavoritePage extends StatelessWidget {
                                                 : Icons.bookmark_border,
                                             color:
                                                 isInBookshelf
-                                                    ? Theme.of(
-                                                      context,
-                                                    ).colorScheme.primary
-                                                    : Colors.grey,
+                                                    ? Theme.of(context)
+                                                        .colorScheme
+                                                        .primary // Warna primary dari tema
+                                                    : Theme.of(context)
+                                                        .colorScheme
+                                                        .onSurfaceVariant, // Warna abu-abu adaptif tema
                                           ),
                                           onPressed: () {
+                                            final String message;
+                                            final Color iconColor;
+                                            final IconData iconData;
+                                            final Color backgroundColor;
+
                                             if (isInBookshelf) {
                                               bookshelfModel.removeBook(book);
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    '${book['title'] ?? 'Buku'} dihapus dari Rak Buku.',
-                                                  ),
-                                                ),
-                                              );
+                                              message =
+                                                  '${book['title'] ?? 'Buku'} dihapus dari Rak Buku.';
+                                              iconData =
+                                                  Icons
+                                                      .bookmark_remove; // <-- GANTI ICON DI SINI
+                                              iconColor =
+                                                  Theme.of(
+                                                    context,
+                                                  ).colorScheme.onError;
+                                              backgroundColor =
+                                                  Theme.of(
+                                                    context,
+                                                  ).colorScheme.error;
                                             } else {
                                               bookshelfModel.addBook(book);
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    '${book['title'] ?? 'Buku'} disimpan ke Rak Buku.',
-                                                  ),
-                                                ),
-                                              );
+                                              message =
+                                                  '${book['title'] ?? 'Buku'} disimpan ke Rak Buku.';
+                                              iconData =
+                                                  Icons
+                                                      .bookmark_add; // <-- GANTI ICON DI SINI
+                                              iconColor =
+                                                  Theme.of(
+                                                    context,
+                                                  ).colorScheme.onPrimary;
+                                              backgroundColor =
+                                                  Theme.of(
+                                                    context,
+                                                  ).colorScheme.primary;
                                             }
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Row(
+                                                  children: [
+                                                    Icon(
+                                                      iconData,
+                                                      color: iconColor,
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    Expanded(
+                                                      child: Text(
+                                                        message,
+                                                        style: TextStyle(
+                                                          color: iconColor,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                backgroundColor:
+                                                    backgroundColor,
+                                                duration: const Duration(
+                                                  seconds: 2,
+                                                ),
+                                              ),
+                                            );
                                           },
                                         ),
+                                        // Tombol Favorit
                                         IconButton(
                                           icon: Icon(
                                             isFavorite
@@ -206,18 +271,68 @@ class FavoritePage extends StatelessWidget {
                                             color:
                                                 isFavorite
                                                     ? Colors.red
-                                                    : Colors.grey,
+                                                    : Theme.of(context)
+                                                        .colorScheme
+                                                        .onSurfaceVariant, // Warna abu-abu adaptif tema
                                           ),
                                           onPressed: () {
                                             favoriteModel.toggleFavorite(book);
+                                            final String message;
+                                            final Color iconColor;
+                                            final IconData iconData;
+                                            final Color backgroundColor;
+
+                                            if (isFavorite) {
+                                              message =
+                                                  '${book['title'] ?? 'Buku'} dihapus dari Favorit.';
+                                              iconData = Icons.favorite_border;
+                                              iconColor =
+                                                  Theme.of(
+                                                    context,
+                                                  ).colorScheme.onError;
+                                              backgroundColor =
+                                                  Theme.of(
+                                                    context,
+                                                  ).colorScheme.error;
+                                            } else {
+                                              message =
+                                                  '${book['title'] ?? 'Buku'} ditambahkan ke Favorit.';
+                                              iconData = Icons.favorite;
+                                              iconColor =
+                                                  Theme.of(
+                                                    context,
+                                                  ).colorScheme.onPrimary;
+                                              backgroundColor =
+                                                  Theme.of(
+                                                    context,
+                                                  ).colorScheme.primary;
+                                            }
+
                                             ScaffoldMessenger.of(
                                               context,
                                             ).showSnackBar(
                                               SnackBar(
-                                                content: Text(
-                                                  isFavorite
-                                                      ? '${book['title'] ?? 'Buku'} dihapus dari Favorit.'
-                                                      : '${book['title'] ?? 'Buku'} ditambahkan ke Favorit.',
+                                                content: Row(
+                                                  children: [
+                                                    Icon(
+                                                      iconData,
+                                                      color: iconColor,
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    Expanded(
+                                                      child: Text(
+                                                        message,
+                                                        style: TextStyle(
+                                                          color: iconColor,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                backgroundColor:
+                                                    backgroundColor,
+                                                duration: const Duration(
+                                                  seconds: 2,
                                                 ),
                                               ),
                                             );

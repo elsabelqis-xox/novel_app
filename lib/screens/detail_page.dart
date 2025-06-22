@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/book_service.dart';
+// import 'package:provider/provider.dart'; // Jika nanti butuh provider untuk fav/bookshelf
 
 class DetailPage extends StatefulWidget {
   final String title;
@@ -34,19 +35,26 @@ class _DetailPageState extends State<DetailPage> {
     super.initState();
     _description = widget.description;
 
+    // Logika untuk fetching deskripsi:
+    // Fetch jika olid tidak null/kosong DAN
+    // (deskripsi awal null, atau kosong, atau adalah placeholder "Deskripsi tidak tersedia.")
     if (widget.olid != null && widget.olid!.isNotEmpty) {
-      final currentDescription = widget.description;
-      if (currentDescription == null ||
-          currentDescription.trim().isEmpty ||
-          (currentDescription.trim().split(' ').length < 100 &&
-              currentDescription != 'Deskripsi tidak tersedia.') ||
+      final String currentDescription = widget.description ?? '';
+      if (currentDescription.isEmpty ||
           currentDescription == 'Deskripsi tidak tersedia.') {
         _fetchDescriptionByOLID(widget.olid!);
       }
+      // Logika di bawah ini (panjang kurang dari 100 kata) bisa dipertimbangkan jika
+      // API Open Library sering memberikan deskripsi parsial dan kamu ingin selalu mengambil yang lengkap.
+      // Untuk saat ini, saya fokus pada kasus null atau placeholder.
+      // else if (currentDescription.trim().split(' ').length < 100) {
+      //   _fetchDescriptionByOLID(widget.olid!);
+      // }
     }
   }
 
   Future<void> _fetchDescriptionByOLID(String olid) async {
+    if (_loadingDescription) return; // Prevent multiple simultaneous fetches
     setState(() => _loadingDescription = true);
     try {
       final cleanedOlid =
@@ -63,6 +71,7 @@ class _DetailPageState extends State<DetailPage> {
             newDescription = desc?.toString();
           }
 
+          // Jika deskripsi baru kosong atau null setelah trim, gunakan deskripsi awal widget atau placeholder
           _description =
               newDescription?.trim().isNotEmpty == true
                   ? newDescription
@@ -75,15 +84,20 @@ class _DetailPageState extends State<DetailPage> {
       if (mounted) {
         setState(() {
           _loadingDescription = false;
+          // Tetap tampilkan deskripsi awal jika ada, jika tidak, tampilkan pesan error
           _description =
-              (widget.description?.isNotEmpty == true)
+              (widget.description?.isNotEmpty == true &&
+                      widget.description != 'Deskripsi tidak tersedia.')
                   ? widget.description
-                  : 'Deskripsi gagal dimuat. Coba lagi nanti.';
+                  : 'Gagal memuat deskripsi lengkap. Coba lagi nanti.';
         });
+        // Tampilkan SnackBar error
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Gagal memuat deskripsi lengkap: ${e.toString()}'),
             backgroundColor: Theme.of(context).colorScheme.error,
+            behavior:
+                SnackBarBehavior.floating, // Agar tidak menutupi tombol bawah
           ),
         );
       }
@@ -97,6 +111,11 @@ class _DetailPageState extends State<DetailPage> {
         title: Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        // Tombol back sudah ada secara default jika ini bukan halaman pertama
+        // leading: IconButton(
+        //   icon: const Icon(Icons.arrow_back),
+        //   onPressed: () => Navigator.pop(context),
+        // ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -112,13 +131,15 @@ class _DetailPageState extends State<DetailPage> {
                   fit: BoxFit.cover,
                   height: 250,
                   width: 170,
-
                   loadingBuilder: (context, child, loadingProgress) {
                     if (loadingProgress == null) return child;
                     return Container(
                       height: 250,
                       width: 170,
-                      color: Colors.grey[200],
+                      color:
+                          Theme.of(context)
+                              .colorScheme
+                              .surfaceVariant, // Warna loading adaptif tema
                       child: Center(
                         child: CircularProgressIndicator(
                           value:
@@ -134,17 +155,22 @@ class _DetailPageState extends State<DetailPage> {
                       ),
                     );
                   },
-
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
                       height: 250,
                       width: 170,
-                      color: Colors.grey[200],
+                      color:
+                          Theme.of(context)
+                              .colorScheme
+                              .surfaceVariant, // Warna error image adaptif tema
                       child: Center(
                         child: Icon(
                           Icons.book,
                           size: 100,
-                          color: Colors.grey[600],
+                          color:
+                              Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant, // Warna ikon adaptif tema
                         ),
                       ),
                     );
@@ -155,8 +181,7 @@ class _DetailPageState extends State<DetailPage> {
             const SizedBox(height: 24),
             Text(
               widget.title,
-              style: TextStyle(
-                fontSize: 28,
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.onSurface,
               ),
@@ -164,8 +189,7 @@ class _DetailPageState extends State<DetailPage> {
             const SizedBox(height: 8),
             Text(
               'Penulis: ${widget.author}',
-              style: TextStyle(
-                fontSize: 18,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontStyle: FontStyle.italic,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -173,24 +197,26 @@ class _DetailPageState extends State<DetailPage> {
             const SizedBox(height: 24),
             Text(
               'Deskripsi:',
-              style: TextStyle(
-                fontSize: 20,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 8),
             _loadingDescription
-                ? const Center(
+                ? Center(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 20.0),
-                    child: CircularProgressIndicator(),
+                    padding: const EdgeInsets.symmetric(vertical: 20.0),
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
                   ),
                 )
                 : Text(
                   _description ?? 'Deskripsi tidak tersedia.',
-                  style: TextStyle(
-                    fontSize: 16,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     height: 1.5,
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
@@ -202,18 +228,24 @@ class _DetailPageState extends State<DetailPage> {
                 child: ElevatedButton.icon(
                   onPressed: () async {
                     final url = Uri.parse(widget.openLibraryUrl!);
-                    if (await canLaunchUrl(url)) {
-                      await launchUrl(
-                        url,
-                        mode: LaunchMode.externalApplication,
-                      );
-                    } else {
+                    try {
+                      if (await canLaunchUrl(url)) {
+                        await launchUrl(
+                          url,
+                          mode: LaunchMode.externalApplication,
+                        );
+                      } else {
+                        // Throw an exception if canLaunchUrl returns false
+                        throw 'Could not launch $url';
+                      }
+                    } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            'Tidak dapat membuka URL: ${widget.openLibraryUrl}',
+                            'Tidak dapat membuka URL: ${widget.openLibraryUrl}\nError: $e',
                           ),
                           backgroundColor: Theme.of(context).colorScheme.error,
+                          behavior: SnackBarBehavior.floating,
                         ),
                       );
                     }
